@@ -1,0 +1,14 @@
+[versions]
+ktlint = "0.47.1"
+ktor = "2.2.1"
+log4j = "2.19.0"
+
+[libraries]
+kotlin-cli = "org.jetbrains.kotlinx:kotlinx-cli-jvm:0.3.5"
+kotlin-logging = "io.github.microutils:kotlin-logging-jvm:3.0.0"
+kotlin-serialization-json = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0"
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+log4j-api-kotlin = "org.apache.logging.log4j:log4j-api-kotlin:1.2.0"
+log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
+log4j-slf4j2-impl = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version.ref = "log4j" }
