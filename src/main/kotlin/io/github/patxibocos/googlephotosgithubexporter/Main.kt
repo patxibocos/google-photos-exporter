@@ -84,7 +84,7 @@ fun main(args: Array<String>) {
 private data class AppArgs(
 //    val githubToken: String,
     val githubRepoOwner: String,
-    val githubRepoName: String,
+    val githubRepoName: String
 //    val googlePhotosClientId: String,
 //    val googlePhotosClientSecret: String,
 //    val googlePhotosRefreshToken: String,
@@ -99,6 +99,6 @@ private fun getAppArgs(args: Array<String>): AppArgs {
     parser.parse(args)
     return AppArgs(
         githubRepoOwner = githubRepoOwner,
-        githubRepoName = githubRepoName,
+        githubRepoName = githubRepoName
     )
 }

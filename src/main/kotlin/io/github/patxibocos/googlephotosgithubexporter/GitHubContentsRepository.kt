@@ -20,7 +20,7 @@ class GitHubContentsRepository(
     private val httpClient: HttpClient,
     repoOwner: String,
     repoName: String,
-    private val logger: Logger = KotlinLogging.logger {},
+    private val logger: Logger = KotlinLogging.logger {}
 ) {
 
     @Serializable

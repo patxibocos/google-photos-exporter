@@ -13,7 +13,7 @@ import java.time.ZoneOffset
 class ExportPhotos(
     private val googlePhotosRepository: GooglePhotosRepository,
     private val gitHubContentsRepository: GitHubContentsRepository,
-    private val logger: Logger = KotlinLogging.logger {},
+    private val logger: Logger = KotlinLogging.logger {}
 ) {
     private fun pathForPhoto(photo: Photo): String {
         val date = photo.creationTime.atOffset(ZoneOffset.UTC).toLocalDate()
