@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.time.Instant
 
-class GooglePhotosDownloader(
+class GooglePhotosRepository(
     private val photosLibraryClient: PhotosLibraryClient,
     private val httpClient: HttpClient
 ) {
@@ -22,7 +22,7 @@ class GooglePhotosDownloader(
         val response = httpClient.get(fullSizeUrl)
         val bytes: ByteArray = response.body()
         val instant = Instant.ofEpochSecond(creationTime.seconds, creationTime.nanos.toLong())
-        return Photo(bytes = bytes, name = mediaItem.filename, creationTime = instant)
+        return Photo(bytes = bytes, id = mediaItem.id, name = mediaItem.filename, creationTime = instant)
     }
 
     private fun fetchItems(
@@ -36,7 +36,7 @@ class GooglePhotosDownloader(
         return client.listMediaItems(request.build())
     }
 
-    fun download(lastPhotoId: String? = null): Flow<Photo> = flow {
+    fun download(lastPhotoId: String? = null, limit: Int): Flow<Photo> = flow {
         // listMediaItems API doesn't support ordering, so this will start fetching recent pages until:
         //  - lastPhotoId is null -> every page
         //  - lastPhotoId not null -> every page until a page contains the given id
@@ -58,8 +58,8 @@ class GooglePhotosDownloader(
                 }
             }
         }
-        while (mediaItems.isNotEmpty()) {
-            emit(buildPhoto(mediaItems.removeLast()))
+        mediaItems.takeLast(limit).reversed().forEach {
+            emit(buildPhoto(it))
         }
     }
 }

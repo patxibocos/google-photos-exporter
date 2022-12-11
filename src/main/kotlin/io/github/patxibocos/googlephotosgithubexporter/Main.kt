@@ -17,6 +17,7 @@ import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.required
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.json.Json
 
 private fun photosLibraryClient(clientId: String, clientSecret: String, refreshToken: String): PhotosLibraryClient {
     fun getNewAccessToken(): String {
@@ -48,10 +49,18 @@ private fun photosLibraryClient(clientId: String, clientSecret: String, refreshT
 fun main(args: Array<String>) {
     val appArgs = getAppArgs(args)
     val (githubToken, githubRepoOwner, githubRepoName, googlePhotosClientId, googlePhotosClientSecret, googlePhotosRefreshToken) = appArgs
-    val googlePhotosClient = HttpClient(CIO)
+    val googlePhotosClient = HttpClient(CIO) {
+        install(HttpTimeout) {
+            requestTimeoutMillis = 60000
+        }
+    }
     val githubClient = HttpClient(CIO) {
         install(ContentNegotiation) {
-            json()
+            json(
+                Json {
+                    ignoreUnknownKeys = true
+                }
+            )
         }
         install(HttpTimeout) {
             requestTimeoutMillis = 60000
@@ -59,12 +68,12 @@ fun main(args: Array<String>) {
     }
 
     val photosClient = photosLibraryClient(googlePhotosClientId, googlePhotosClientSecret, googlePhotosRefreshToken)
-    val downloader = GooglePhotosDownloader(photosClient, googlePhotosClient)
-    val uploader = GitHubUploader(githubToken, githubClient, githubRepoOwner, githubRepoName)
+    val googlePhotosRepository = GooglePhotosRepository(photosClient, googlePhotosClient)
+    val gitHubContentsRepository = GitHubContentsRepository(githubToken, githubClient, githubRepoOwner, githubRepoName)
 
-    val exportPhotos = ExportPhotos(downloader, uploader)
+    val exportPhotos = ExportPhotos(googlePhotosRepository, gitHubContentsRepository)
     runBlocking {
-        exportPhotos(lastPhotoId = null)
+        exportPhotos()
     }
 }
 
