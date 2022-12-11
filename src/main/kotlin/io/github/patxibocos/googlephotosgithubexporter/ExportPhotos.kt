@@ -28,7 +28,7 @@ class ExportPhotos(
     suspend operator fun invoke() {
         val lastPhotoId = gitHubContentsRepository.get(syncFileName)?.toString(Charsets.UTF_8)
         googlePhotosRepository
-            .download(lastPhotoId, 10)
+            .download(lastPhotoId)
             .onEmpty {
                 logger.info("No new photos")
             }

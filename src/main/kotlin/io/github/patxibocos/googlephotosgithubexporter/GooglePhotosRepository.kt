@@ -36,7 +36,7 @@ class GooglePhotosRepository(
         return client.listMediaItems(request.build())
     }
 
-    fun download(lastPhotoId: String? = null, limit: Int): Flow<Photo> = flow {
+    fun download(lastPhotoId: String? = null, limit: Int = Int.MAX_VALUE): Flow<Photo> = flow {
         // listMediaItems API doesn't support ordering, so this will start fetching recent pages until:
         //  - lastPhotoId is null -> every page
         //  - lastPhotoId not null -> every page until a page contains the given id

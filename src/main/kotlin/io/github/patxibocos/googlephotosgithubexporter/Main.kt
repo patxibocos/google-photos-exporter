@@ -48,7 +48,11 @@ private fun photosLibraryClient(clientId: String, clientSecret: String, refreshT
 
 fun main(args: Array<String>) {
     val appArgs = getAppArgs(args)
-    val (githubToken, githubRepoOwner, githubRepoName, googlePhotosClientId, googlePhotosClientSecret, googlePhotosRefreshToken) = appArgs
+    val githubToken = System.getenv("GITHUB_TOKEN")
+    val googlePhotosClientId = System.getenv("GOOGLE_PHOTOS_CLIENT_ID")
+    val googlePhotosClientSecret = System.getenv("GOOGLE_PHOTOS_CLIENT_SECRET")
+    val googlePhotosRefreshToken = System.getenv("GOOGLE_PHOTOS_REFRESH_TOKEN")
+    val (githubRepoOwner, githubRepoName) = appArgs
     val googlePhotosClient = HttpClient(CIO) {
         install(HttpTimeout) {
             requestTimeoutMillis = 60000
@@ -78,43 +82,23 @@ fun main(args: Array<String>) {
 }
 
 private data class AppArgs(
-    val githubToken: String,
+//    val githubToken: String,
     val githubRepoOwner: String,
     val githubRepoName: String,
-    val googlePhotosClientId: String,
-    val googlePhotosClientSecret: String,
-    val googlePhotosRefreshToken: String,
+//    val googlePhotosClientId: String,
+//    val googlePhotosClientSecret: String,
+//    val googlePhotosRefreshToken: String,
 )
 
 private fun getAppArgs(args: Array<String>): AppArgs {
     val parser = ArgParser("google-photos-github-exporter")
-    val githubToken by parser.option(ArgType.String, shortName = "gt", description = "GitHub token").required()
     val githubRepoOwner by parser.option(ArgType.String, shortName = "gro", description = "GitHub repository owner")
         .required()
     val githubRepoName by parser.option(ArgType.String, shortName = "grn", description = "GitHub repository name")
         .required()
-    val googlePhotosClientId by parser.option(
-        ArgType.String,
-        shortName = "gpci",
-        description = "Google Photos client ID"
-    ).required()
-    val googlePhotosClientSecret by parser.option(
-        ArgType.String,
-        shortName = "gpcs",
-        description = "Google Photos client secret"
-    ).required()
-    val googlePhotosRefreshToken by parser.option(
-        ArgType.String,
-        shortName = "gprt",
-        description = "Google Photos refresh token"
-    ).required()
     parser.parse(args)
     return AppArgs(
-        githubToken = githubToken,
         githubRepoOwner = githubRepoOwner,
         githubRepoName = githubRepoName,
-        googlePhotosClientId = googlePhotosClientId,
-        googlePhotosClientSecret = googlePhotosClientSecret,
-        googlePhotosRefreshToken = googlePhotosRefreshToken,
     )
 }
