@@ -20,7 +20,9 @@ class ExportPhotos(
         val year = date.year.toString()
         val month = "%02d".format(date.monthValue)
         val day = "%02d".format(date.dayOfMonth)
-        return "photos/$year/$month/$day/${photo.name}"
+        val dotIndex = photo.name.lastIndexOf('.')
+        val extension = if (dotIndex != -1) photo.name.substring(dotIndex) else ""
+        return "photos/$year/$month/$day/${photo.id}$extension"
     }
 
     private val syncFileName = "last-synced-photo"

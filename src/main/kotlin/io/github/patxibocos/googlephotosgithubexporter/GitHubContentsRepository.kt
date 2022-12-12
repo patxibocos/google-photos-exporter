@@ -76,7 +76,7 @@ class GitHubContentsRepository(
             null
         }
         val base64 = String(Base64.getEncoder().encode(data))
-        val response = httpClient.put("$basePath/$filePath") {
+        val response = httpClient.put("$basePath/${filePath.replace(" ", "%20")}") {
             contentType(ContentType.Application.Json)
             setBody(RequestBody(commitMessage, base64, sha))
             headers {
