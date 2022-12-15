@@ -28,7 +28,7 @@ class ExportPhotos(
     private val syncFileName = "last-synced-photo"
 
     suspend operator fun invoke() {
-        val lastPhotoId = gitHubContentsRepository.get(syncFileName)?.toString(Charsets.UTF_8)
+        val lastPhotoId = gitHubContentsRepository.get(syncFileName)?.toString(Charsets.UTF_8)?.trim()
         googlePhotosRepository
             .download(lastPhotoId)
             .onEmpty {
@@ -37,7 +37,7 @@ class ExportPhotos(
             .catch {
                 logger.error("Failed fetching photos", it)
             }
-            .buffer(capacity = 2, onBufferOverflow = BufferOverflow.SUSPEND)
+            .buffer(capacity = 1, onBufferOverflow = BufferOverflow.SUSPEND)
             .onEach { photo ->
                 gitHubContentsRepository.upload(photo.bytes, pathForPhoto(photo), "Upload photo: ${photo.name}")
             }

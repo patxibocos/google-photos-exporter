@@ -7,19 +7,28 @@ import com.google.photos.types.proto.MediaItem
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import mu.KotlinLogging
+import org.slf4j.Logger
 import java.time.Instant
+
+class Photo(val bytes: ByteArray, val id: String, val name: String, val creationTime: Instant)
 
 class GooglePhotosRepository(
     private val photosLibraryClient: PhotosLibraryClient,
-    private val httpClient: HttpClient
+    private val httpClient: HttpClient,
+    private val logger: Logger = KotlinLogging.logger {}
 ) {
 
     private suspend fun buildPhoto(mediaItem: MediaItem): Photo {
         val creationTime = mediaItem.mediaMetadata.creationTime
         val fullSizeUrl = "${mediaItem.baseUrl}=d"
         val response = httpClient.get(fullSizeUrl)
+        if (!response.status.isSuccess()) {
+            throw Exception("Could not download photo from Google Photos (status: ${response.status}): ${response.body<String>()}")
+        }
         val bytes: ByteArray = response.body()
         val instant = Instant.ofEpochSecond(creationTime.seconds, creationTime.nanos.toLong())
         return Photo(bytes = bytes, id = mediaItem.id, name = mediaItem.filename, creationTime = instant)
@@ -58,6 +67,7 @@ class GooglePhotosRepository(
                 }
             }
         }
+        logger.info("${mediaItems.size} new photos identified")
         mediaItems.takeLast(limit).reversed().forEach {
             emit(buildPhoto(it))
         }

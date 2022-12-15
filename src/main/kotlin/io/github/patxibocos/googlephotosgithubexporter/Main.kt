@@ -1,50 +1,9 @@
 package io.github.patxibocos.googlephotosgithubexporter
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleRefreshTokenRequest
-import com.google.api.client.http.javanet.NetHttpTransport
-import com.google.api.client.json.gson.GsonFactory
-import com.google.api.gax.core.FixedCredentialsProvider
-import com.google.auth.oauth2.AccessToken
-import com.google.auth.oauth2.OAuth2Credentials
-import com.google.photos.library.v1.PhotosLibraryClient
-import com.google.photos.library.v1.PhotosLibrarySettings
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.required
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.json.Json
-
-private fun photosLibraryClient(clientId: String, clientSecret: String, refreshToken: String): PhotosLibraryClient {
-    fun getNewAccessToken(): String {
-        val scopes = listOf("https://www.googleapis.com/auth/photoslibrary.readonly")
-        val tokenResponse =
-            GoogleRefreshTokenRequest(
-                NetHttpTransport(),
-                GsonFactory(),
-                refreshToken,
-                clientId,
-                clientSecret
-            ).setScopes(
-                scopes
-            ).setGrantType("refresh_token").execute()
-        return tokenResponse.accessToken
-    }
-
-    val accessToken = getNewAccessToken()
-    val settings: PhotosLibrarySettings = PhotosLibrarySettings.newBuilder()
-        .setCredentialsProvider(
-            FixedCredentialsProvider.create(
-                OAuth2Credentials.newBuilder().setAccessToken(AccessToken(accessToken, null)).build()
-            )
-        )
-        .build()
-    return PhotosLibraryClient.initialize(settings)
-}
 
 fun main(args: Array<String>) {
     val appArgs = getAppArgs(args)
@@ -53,27 +12,15 @@ fun main(args: Array<String>) {
     val googlePhotosClientSecret = System.getenv("GOOGLE_PHOTOS_CLIENT_SECRET")
     val googlePhotosRefreshToken = System.getenv("GOOGLE_PHOTOS_REFRESH_TOKEN")
     val (githubRepoOwner, githubRepoName) = appArgs
-    val googlePhotosClient = HttpClient(CIO) {
-        install(HttpTimeout) {
-            requestTimeoutMillis = 60000
-        }
-    }
-    val githubClient = HttpClient(CIO) {
-        install(ContentNegotiation) {
-            json(
-                Json {
-                    ignoreUnknownKeys = true
-                }
-            )
-        }
-        install(HttpTimeout) {
-            requestTimeoutMillis = 60000
-        }
-    }
 
+    // Build clients
+    val googlePhotosClient = googlePhotosHttpClient()
+    val githubClient = githubHttpClient(githubToken)
     val photosClient = photosLibraryClient(googlePhotosClientId, googlePhotosClientSecret, googlePhotosRefreshToken)
+
+    // Build repositories
     val googlePhotosRepository = GooglePhotosRepository(photosClient, googlePhotosClient)
-    val gitHubContentsRepository = GitHubContentsRepository(githubToken, githubClient, githubRepoOwner, githubRepoName)
+    val gitHubContentsRepository = GitHubContentsRepository(githubClient, githubRepoOwner, githubRepoName)
 
     val exportPhotos = ExportPhotos(googlePhotosRepository, gitHubContentsRepository)
     runBlocking {
@@ -82,12 +29,8 @@ fun main(args: Array<String>) {
 }
 
 private data class AppArgs(
-//    val githubToken: String,
     val githubRepoOwner: String,
     val githubRepoName: String
-//    val googlePhotosClientId: String,
-//    val googlePhotosClientSecret: String,
-//    val googlePhotosRefreshToken: String,
 )
 
 private fun getAppArgs(args: Array<String>): AppArgs {
