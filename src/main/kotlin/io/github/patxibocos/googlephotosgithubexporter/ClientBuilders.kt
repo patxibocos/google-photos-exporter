@@ -48,7 +48,7 @@ internal fun photosLibraryClient(clientId: String, clientSecret: String, refresh
 internal fun googlePhotosHttpClient(): HttpClient {
     return HttpClient(CIO) {
         install(HttpTimeout) {
-            requestTimeoutMillis = 60000
+            requestTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
         }
     }
 }
@@ -70,7 +70,7 @@ internal fun githubHttpClient(token: String): HttpClient {
             )
         }
         install(HttpTimeout) {
-            requestTimeoutMillis = 60000
+            requestTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
         }
     }
 }

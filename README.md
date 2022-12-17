@@ -52,6 +52,7 @@ Usage: google-photos-github-exporter options_list
 Options:
     --githubRepoOwner, -gro -> GitHub repository owner (always required) { String }
     --githubRepoName, -grn -> GitHub repository name (always required) { String }
+    --itemTypes, -it [PHOTO, VIDEO] -> Item types to include { Value should be one of [photo, video] }
     --help, -h -> Usage info
 ```
 

@@ -2,7 +2,10 @@ package io.github.patxibocos.googlephotosgithubexporter
 
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
+import kotlinx.cli.default
+import kotlinx.cli.multiple
 import kotlinx.cli.required
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 fun main(args: Array<String>) {
@@ -19,18 +22,23 @@ fun main(args: Array<String>) {
     val photosClient = photosLibraryClient(googlePhotosClientId, googlePhotosClientSecret, googlePhotosRefreshToken)
 
     // Build repositories
-    val googlePhotosRepository = GooglePhotosRepository(photosClient, googlePhotosClient, ItemType.PHOTO)
+    val googlePhotosRepository = GooglePhotosRepository(photosClient, googlePhotosClient)
     val gitHubContentsRepository = GitHubContentsRepository(githubClient, githubRepoOwner, githubRepoName)
 
-    val exportPhotos = ExportPhotos(googlePhotosRepository, gitHubContentsRepository)
+    val exportItems = ExportItems(googlePhotosRepository, gitHubContentsRepository)
     runBlocking {
-        exportPhotos()
+        appArgs.itemTypes.forEach { itemType ->
+            launch {
+                exportItems(itemType)
+            }
+        }
     }
 }
 
 private data class AppArgs(
     val githubRepoOwner: String,
-    val githubRepoName: String
+    val githubRepoName: String,
+    val itemTypes: List<ItemType>
 )
 
 private fun getAppArgs(args: Array<String>): AppArgs {
@@ -39,9 +47,12 @@ private fun getAppArgs(args: Array<String>): AppArgs {
         .required()
     val githubRepoName by parser.option(ArgType.String, shortName = "grn", description = "GitHub repository name")
         .required()
+    val itemTypes by parser.option(ArgType.Choice<ItemType>(), shortName = "it", description = "Item types to include")
+        .multiple().default(ItemType.values().toList())
     parser.parse(args)
     return AppArgs(
         githubRepoOwner = githubRepoOwner,
-        githubRepoName = githubRepoName
+        githubRepoName = githubRepoName,
+        itemTypes = itemTypes
     )
 }
