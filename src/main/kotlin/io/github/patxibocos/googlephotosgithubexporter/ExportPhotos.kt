@@ -1,7 +1,5 @@
 package io.github.patxibocos.googlephotosgithubexporter
 
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.onEach
@@ -37,7 +35,6 @@ class ExportPhotos(
             .catch {
                 logger.error("Failed fetching photos", it)
             }
-            .buffer(capacity = 1, onBufferOverflow = BufferOverflow.SUSPEND)
             .onEach { photo ->
                 gitHubContentsRepository.upload(photo.bytes, pathForPhoto(photo), "Upload photo: ${photo.name}")
             }
