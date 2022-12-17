@@ -14,24 +14,33 @@ import mu.KotlinLogging
 import org.slf4j.Logger
 import java.time.Instant
 
-class Photo(val bytes: ByteArray, val id: String, val name: String, val creationTime: Instant)
+class Item(val bytes: ByteArray, val id: String, val name: String, val creationTime: Instant)
+
+enum class ItemType {
+    PHOTO, VIDEO
+}
 
 class GooglePhotosRepository(
     private val photosLibraryClient: PhotosLibraryClient,
     private val httpClient: HttpClient,
+    private val itemType: ItemType,
     private val logger: Logger = KotlinLogging.logger {}
 ) {
 
-    private suspend fun buildPhoto(mediaItem: MediaItem): Photo {
+    private suspend fun buildItem(mediaItem: MediaItem): Item {
         val creationTime = mediaItem.mediaMetadata.creationTime
-        val fullSizeUrl = "${mediaItem.baseUrl}=d"
+        val suffix = when (itemType) {
+            ItemType.PHOTO -> "d"
+            ItemType.VIDEO -> "dv"
+        }
+        val fullSizeUrl = "${mediaItem.baseUrl}=$suffix"
         val response = httpClient.get(fullSizeUrl)
         if (!response.status.isSuccess()) {
             throw Exception("Could not download photo from Google Photos (status: ${response.status}): ${response.body<String>()}")
         }
         val bytes: ByteArray = response.body()
         val instant = Instant.ofEpochSecond(creationTime.seconds, creationTime.nanos.toLong())
-        return Photo(bytes = bytes, id = mediaItem.id, name = mediaItem.filename, creationTime = instant)
+        return Item(bytes = bytes, id = mediaItem.id, name = mediaItem.filename, creationTime = instant)
     }
 
     private fun fetchItems(
@@ -45,7 +54,14 @@ class GooglePhotosRepository(
         return client.listMediaItems(request.build())
     }
 
-    fun download(lastPhotoId: String? = null, limit: Int = Int.MAX_VALUE): Flow<Photo> = flow {
+    private val mediaItemFilter = { mediaItem: MediaItem ->
+        when (itemType) {
+            ItemType.PHOTO -> mediaItem.mediaMetadata.hasPhoto()
+            ItemType.VIDEO -> mediaItem.mediaMetadata.hasVideo()
+        }
+    }
+
+    fun download(lastPhotoId: String? = null, limit: Int = Int.MAX_VALUE): Flow<Item> = flow {
         // listMediaItems API doesn't support ordering, so this will start fetching recent pages until:
         //  - lastPhotoId is null -> every page
         //  - lastPhotoId not null -> every page until a page contains the given id
@@ -55,9 +71,7 @@ class GooglePhotosRepository(
             while (true) {
                 val googlePhotosResponse = fetchItems(client, nextPageToken)
                 nextPageToken = googlePhotosResponse.nextPageToken
-                val photoItems = googlePhotosResponse.page.response.mediaItemsList.filter {
-                    it.mediaMetadata.hasPhoto()
-                }
+                val photoItems = googlePhotosResponse.page.response.mediaItemsList.filter(mediaItemFilter)
                 val newItems = photoItems.takeWhile {
                     it.id != lastPhotoId
                 }
@@ -69,7 +83,7 @@ class GooglePhotosRepository(
         }
         logger.info("${mediaItems.size} new photos identified")
         mediaItems.takeLast(limit).reversed().forEach {
-            emit(buildPhoto(it))
+            emit(buildItem(it))
         }
     }
 }

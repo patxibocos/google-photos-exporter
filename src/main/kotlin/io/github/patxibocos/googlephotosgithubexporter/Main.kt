@@ -19,7 +19,7 @@ fun main(args: Array<String>) {
     val photosClient = photosLibraryClient(googlePhotosClientId, googlePhotosClientSecret, googlePhotosRefreshToken)
 
     // Build repositories
-    val googlePhotosRepository = GooglePhotosRepository(photosClient, googlePhotosClient)
+    val googlePhotosRepository = GooglePhotosRepository(photosClient, googlePhotosClient, ItemType.PHOTO)
     val gitHubContentsRepository = GitHubContentsRepository(githubClient, githubRepoOwner, githubRepoName)
 
     val exportPhotos = ExportPhotos(googlePhotosRepository, gitHubContentsRepository)

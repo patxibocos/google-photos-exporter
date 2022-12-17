@@ -13,14 +13,14 @@ class ExportPhotos(
     private val gitHubContentsRepository: GitHubContentsRepository,
     private val logger: Logger = KotlinLogging.logger {}
 ) {
-    private fun pathForPhoto(photo: Photo): String {
-        val date = photo.creationTime.atOffset(ZoneOffset.UTC).toLocalDate()
+    private fun pathForPhoto(item: Item): String {
+        val date = item.creationTime.atOffset(ZoneOffset.UTC).toLocalDate()
         val year = date.year.toString()
         val month = "%02d".format(date.monthValue)
         val day = "%02d".format(date.dayOfMonth)
-        val dotIndex = photo.name.lastIndexOf('.')
-        val extension = if (dotIndex != -1) photo.name.substring(dotIndex) else ""
-        return "photos/$year/$month/$day/${photo.id}$extension"
+        val dotIndex = item.name.lastIndexOf('.')
+        val extension = if (dotIndex != -1) item.name.substring(dotIndex) else ""
+        return "photos/$year/$month/$day/${item.id}$extension"
     }
 
     private val syncFileName = "last-synced-photo"
