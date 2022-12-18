@@ -34,6 +34,7 @@ dependencies {
     implementation(libs.log4j.api.kotlin)
     implementation(libs.log4j.core)
     implementation(libs.log4j.slf4j2.impl)
+    implementation(libs.zip4j)
 }
 
 tasks.test {

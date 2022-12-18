@@ -42,13 +42,24 @@ class ExportItems(
                 logger.error("Failed fetching content", it)
             }
             .onEach { item ->
-                gitHubContentsRepository.upload(item.bytes, pathForItem(item, itemType), "Upload item: ${item.name}")
+                gitHubContentsRepository.upload(
+                    item.bytes,
+                    item.name,
+                    pathForItem(item, itemType),
+                    "Upload item: ${item.name}"
+                )
             }
             .catch {
                 logger.error("Failed uploading item", it)
             }
             .lastOrNull()?.let {
-                gitHubContentsRepository.upload(it.id.toByteArray(), syncFileName, "Update last uploaded item", true)
+                gitHubContentsRepository.upload(
+                    it.id.toByteArray(),
+                    syncFileName,
+                    syncFileName,
+                    "Update last uploaded item",
+                    true
+                )
                 logger.info("Last uploaded item: ${it.name}")
             }
     }
