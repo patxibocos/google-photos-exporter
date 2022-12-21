@@ -7,6 +7,7 @@ import com.google.photos.types.proto.MediaItem
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -19,6 +20,8 @@ class Item(val bytes: ByteArray, val id: String, val name: String, val creationT
 enum class ItemType {
     PHOTO, VIDEO
 }
+
+object GooglePhotosItemForbidden : Exception()
 
 class GooglePhotosRepository(
     private val photosLibraryClient: PhotosLibraryClient,
@@ -34,6 +37,9 @@ class GooglePhotosRepository(
         }
         val fullSizeUrl = "${mediaItem.baseUrl}=$suffix"
         val response = httpClient.get(fullSizeUrl)
+        if (response.status == HttpStatusCode.Forbidden) {
+            throw GooglePhotosItemForbidden
+        }
         if (!response.status.isSuccess()) {
             throw Exception("Could not download photo from Google Photos (status: ${response.status}): ${response.body<String>()}")
         }
@@ -60,30 +66,46 @@ class GooglePhotosRepository(
         }
     }
 
-    fun download(itemType: ItemType, lastItemId: String? = null, limit: Int = Int.MAX_VALUE): Flow<Item> = flow {
-        // listMediaItems API doesn't support ordering, so this will start fetching recent pages until:
-        //  - lastPhotoId is null -> every page
-        //  - lastPhotoId not null -> every page until a page contains the given id
-        val mediaItems = ArrayDeque<MediaItem>()
-        var nextPageToken = ""
-        photosLibraryClient.use { client ->
-            while (true) {
-                val googlePhotosResponse = fetchItems(client, nextPageToken)
-                nextPageToken = googlePhotosResponse.nextPageToken
-                val photoItems =
-                    googlePhotosResponse.page.response.mediaItemsList.filter { mediaItemFilter(itemType)(it) }
-                val newItems = photoItems.takeWhile {
-                    it.id != lastItemId
-                }
-                mediaItems.addAll(newItems)
-                if (newItems.size != photoItems.size || nextPageToken.isEmpty()) {
-                    break
+    fun download(itemType: ItemType, lastItemId: String? = null): Flow<Item> = flow {
+        fun getItems(lastItemId: String?): List<MediaItem> {
+            // listMediaItems API doesn't support ordering, so this will start fetching recent pages until:
+            //  - lastItemId is null -> every page
+            //  - lastItemId not null -> every page until a page contains the given id
+            val mediaItems = ArrayDeque<MediaItem>()
+            var nextPageToken = ""
+            photosLibraryClient.use { client ->
+                while (true) {
+                    val googlePhotosResponse = fetchItems(client, nextPageToken)
+                    nextPageToken = googlePhotosResponse.nextPageToken
+                    val items =
+                        googlePhotosResponse.page.response.mediaItemsList.filter { mediaItemFilter(itemType)(it) }
+                    val newItems = items.takeWhile {
+                        it.id != lastItemId
+                    }
+                    mediaItems.addAll(newItems)
+                    if (newItems.size != items.size || nextPageToken.isEmpty()) {
+                        break
+                    }
                 }
             }
+            return mediaItems
         }
-        logger.info("${mediaItems.size} new items identified")
-        mediaItems.takeLast(limit).reversed().forEach {
-            emit(buildItem(itemType, it))
+
+        var finished = false
+        var lastEmittedId = lastItemId
+        while (!finished) {
+            val mediaItems = getItems(lastEmittedId)
+            logger.info("${mediaItems.size} new items identified")
+            try {
+                mediaItems.forEach { mediaItem ->
+                    val item = buildItem(itemType, mediaItem)
+                    emit(item)
+                    lastEmittedId = mediaItem.id
+                }
+                finished = true
+            } catch (e: GooglePhotosItemForbidden) {
+                logger.warn("Google Photos returned 403 Forbidden, retrying")
+            }
         }
     }
 }
