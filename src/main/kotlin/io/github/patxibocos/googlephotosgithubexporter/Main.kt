@@ -14,7 +14,7 @@ fun main(args: Array<String>) {
     val googlePhotosClientId = System.getenv("GOOGLE_PHOTOS_CLIENT_ID")
     val googlePhotosClientSecret = System.getenv("GOOGLE_PHOTOS_CLIENT_SECRET")
     val googlePhotosRefreshToken = System.getenv("GOOGLE_PHOTOS_REFRESH_TOKEN")
-    val (githubRepoOwner, githubRepoName) = appArgs
+    val (githubRepoOwner, githubRepoName, itemTypes, maxChunkSize) = appArgs
 
     // Build clients
     val googlePhotosClient = googlePhotosHttpClient()
@@ -23,11 +23,11 @@ fun main(args: Array<String>) {
 
     // Build repositories
     val googlePhotosRepository = GooglePhotosRepository(photosClient, googlePhotosClient)
-    val gitHubContentsRepository = GitHubContentsRepository(githubClient, githubRepoOwner, githubRepoName)
+    val gitHubContentsRepository = GitHubContentsRepository(githubClient, githubRepoOwner, githubRepoName, maxChunkSize)
 
     val exportItems = ExportItems(googlePhotosRepository, gitHubContentsRepository)
     runBlocking {
-        appArgs.itemTypes.forEach { itemType ->
+        itemTypes.forEach { itemType ->
             launch {
                 exportItems(itemType)
             }
@@ -38,7 +38,8 @@ fun main(args: Array<String>) {
 private data class AppArgs(
     val githubRepoOwner: String,
     val githubRepoName: String,
-    val itemTypes: List<ItemType>
+    val itemTypes: List<ItemType>,
+    val maxChunkSize: Int
 )
 
 private fun getAppArgs(args: Array<String>): AppArgs {
@@ -49,10 +50,16 @@ private fun getAppArgs(args: Array<String>): AppArgs {
         .required()
     val itemTypes by parser.option(ArgType.Choice<ItemType>(), shortName = "it", description = "Item types to include")
         .multiple().default(ItemType.values().toList())
+    val maxChunkSize by parser.option(
+        ArgType.Int,
+        shortName = "mcs",
+        description = "Max chunk size when uploading to GitHub"
+    ).default(25)
     parser.parse(args)
     return AppArgs(
         githubRepoOwner = githubRepoOwner,
         githubRepoName = githubRepoName,
-        itemTypes = itemTypes
+        itemTypes = itemTypes,
+        maxChunkSize = maxChunkSize
     )
 }

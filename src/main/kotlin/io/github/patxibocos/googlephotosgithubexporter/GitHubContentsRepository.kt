@@ -21,9 +21,10 @@ class GitHubContentsRepository(
     private val httpClient: HttpClient,
     repoOwner: String,
     repoName: String,
+    maxChunkSizeMBs: Int,
     private val logger: Logger = KotlinLogging.logger {}
 ) {
-    private val maxFileSize = 50 * 1024 * 1024 // 50MB
+    private val maxSizeInBytes = maxChunkSizeMBs * 1024 * 1024
 
     @Serializable
     private data class RequestBody(val message: String, val content: String, val sha: String? = null)
@@ -54,7 +55,7 @@ class GitHubContentsRepository(
             writeBytes(content)
         }
         val zipFile = ZipFile("$name.zip")
-        zipFile.createSplitZipFile(listOf(file), ZipParameters(), true, maxFileSize.toLong())
+        zipFile.createSplitZipFile(listOf(file), ZipParameters(), true, maxSizeInBytes.toLong())
         val zipSplits = zipFile.splitZipFiles.map {
             ZipSplit(it.name, it.readBytes())
         }
@@ -70,7 +71,7 @@ class GitHubContentsRepository(
         commitMessage: String,
         overrideContent: Boolean = false
     ) {
-        if (data.size > maxFileSize) {
+        if (data.size > maxSizeInBytes) {
             val fileName = filePath.split("/").last()
             zipAndSplit(fileName, data).forEach {
                 val path = "$filePath/${it.name}"
