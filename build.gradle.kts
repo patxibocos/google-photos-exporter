@@ -22,6 +22,7 @@ dependencies {
     implementation(libs.google.api.client)
     implementation(libs.google.oauth2.http)
     implementation(libs.google.photos.library.client)
+    implementation(libs.io.grpc.alts)
     implementation(libs.kotlin.cli)
     implementation(libs.kotlin.coroutines.core)
     implementation(libs.kotlin.logging)
