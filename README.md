@@ -11,7 +11,7 @@
 Once installed, the app must be built using the included Gradle wrapper:
 
 ```shell
-./gradlew build
+./gradlew shadowJar
 ```
 
 This will place a runnable Java jar under **build/libs** directory.
