@@ -1,18 +1,15 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
-    application
     idea
     kotlin("jvm") version "1.7.21"
     kotlin("plugin.serialization") version "1.7.21"
     id("com.diffplug.spotless") version "6.12.0"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "io.github.patxibocos"
 version = "1.0"
-
-application {
-    mainClass.set("io.github.patxibocos.googlephotosgithubexporter.MainKt")
-    applicationName = rootProject.name
-}
 
 repositories {
     mavenCentral()
@@ -22,7 +19,6 @@ dependencies {
     implementation(libs.google.api.client)
     implementation(libs.google.oauth2.http)
     implementation(libs.google.photos.library.client)
-    implementation(libs.io.grpc.alts)
     implementation(libs.kotlin.cli)
     implementation(libs.kotlin.coroutines.core)
     implementation(libs.kotlin.logging)
@@ -46,15 +42,6 @@ kotlin {
     jvmToolchain(8)
 }
 
-tasks.withType<Jar> {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    manifest {
-        attributes["Main-Class"] = application.mainClass
-        archiveFileName.set("${project.name}.jar")
-    }
-    from(configurations.compileClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
-}
-
 spotless {
     kotlin {
         target("**/*.kt")
@@ -66,4 +53,15 @@ spotless {
         target("*.gradle.kts")
         ktlint("0.47.1")
     }
+}
+
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = "io.github.patxibocos.googlephotosgithubexporter.MainKt"
+        archiveFileName.set("${project.name}.jar")
+    }
+}
+
+tasks.withType<ShadowJar> {
+    mergeServiceFiles()
 }

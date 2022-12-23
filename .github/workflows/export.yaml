@@ -22,7 +22,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build
-        run: ./gradlew build
+        run: ./gradlew shadowJar
 
       - name: Run photos exporter
         run: java -jar build/libs/google-photos-github-exporter.jar -gro patxibocos -grn my-photos -it photo
