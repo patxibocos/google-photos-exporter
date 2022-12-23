@@ -2,6 +2,7 @@ name: export
 
 on:
   schedule:
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -23,10 +24,18 @@ jobs:
       - name: Build
         run: ./gradlew build
 
-      - name: Run
-        run: java -jar build/libs/google-photos-github-exporter.jar -gro patxibocos -grn test
+      - name: Run photos exporter
+        run: java -jar build/libs/google-photos-github-exporter.jar -gro patxibocos -grn my-photos -it photo
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PHOTOS_REPOSITORY_TOKEN }}
+          GOOGLE_PHOTOS_CLIENT_ID: ${{ secrets.GOOGLE_PHOTOS_CLIENT_ID }}
+          GOOGLE_PHOTOS_CLIENT_SECRET: ${{ secrets.GOOGLE_PHOTOS_CLIENT_SECRET }}
+          GOOGLE_PHOTOS_REFRESH_TOKEN: ${{ secrets.GOOGLE_PHOTOS_REFRESH_TOKEN }}
+
+      - name: Run videos exporter
+        run: java -jar build/libs/google-photos-github-exporter.jar -gro patxibocos -grn my-videos -it video -mcs 50
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_VIDEOS_REPOSITORY_TOKEN }}
           GOOGLE_PHOTOS_CLIENT_ID: ${{ secrets.GOOGLE_PHOTOS_CLIENT_ID }}
           GOOGLE_PHOTOS_CLIENT_SECRET: ${{ secrets.GOOGLE_PHOTOS_CLIENT_SECRET }}
           GOOGLE_PHOTOS_REFRESH_TOKEN: ${{ secrets.GOOGLE_PHOTOS_REFRESH_TOKEN }}
