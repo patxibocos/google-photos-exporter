@@ -88,7 +88,7 @@ class GooglePhotosRepository(
                     }
                 }
             }
-            return mediaItems
+            return mediaItems.reversed()
         }
 
         var finished = false
