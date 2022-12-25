@@ -11,21 +11,16 @@ import io.ktor.http.isSuccess
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
-import net.lingala.zip4j.ZipFile
-import net.lingala.zip4j.model.ZipParameters
 import org.slf4j.Logger
-import java.io.File
 import java.util.*
 
 class GitHubContentsRepository(
     private val httpClient: HttpClient,
     repoOwner: String,
     repoName: String,
-    maxChunkSizeMBs: Int,
     prefixPath: String,
     private val logger: Logger = KotlinLogging.logger {}
-) {
-    private val maxSizeInBytes = maxChunkSizeMBs * 1024 * 1024
+) : ExportRepository {
 
     @Serializable
     private data class RequestBody(val message: String, val content: String, val sha: String? = null)
@@ -35,7 +30,7 @@ class GitHubContentsRepository(
 
     private val basePath = "https://api.github.com/repos/$repoOwner/$repoName/contents/$prefixPath"
 
-    suspend fun get(filePath: String): ByteArray? {
+    override suspend fun get(filePath: String): ByteArray? {
         val response = httpClient.get("$basePath/$filePath") {
             contentType(ContentType.Application.Json)
         }
@@ -48,38 +43,13 @@ class GitHubContentsRepository(
         return fileResponse.body()
     }
 
-    private class ZipSplit(val name: String, val data: ByteArray)
-
-    private fun zipAndSplit(name: String, content: ByteArray): List<ZipSplit> {
-        val file = File(name).apply {
-            createNewFile()
-            writeBytes(content)
-        }
-        val zipFile = ZipFile("$name.zip")
-        zipFile.createSplitZipFile(listOf(file), ZipParameters(), true, maxSizeInBytes.toLong())
-        val zipSplits = zipFile.splitZipFiles.map {
-            ZipSplit(it.name, it.readBytes())
-        }
-        file.delete()
-        zipFile.splitZipFiles.forEach(File::delete)
-        return zipSplits
-    }
-
-    suspend fun upload(
+    override suspend fun upload(
         data: ByteArray,
         name: String,
         filePath: String,
-        commitMessage: String,
-        overrideContent: Boolean = false
+        overrideContent: Boolean
     ) {
-        if (data.size > maxSizeInBytes) {
-            val fileName = filePath.split("/").last()
-            zipAndSplit(fileName, data).forEach {
-                val path = "$filePath/${it.name}"
-                upload(it.data, it.name, path, "$commitMessage (split)", overrideContent)
-            }
-            return
-        }
+        val commitMessage = "Upload $name"
         val sizeInMBs = data.size.toFloat() / 1024 / 1024
         logger.info("Uploading $name (${"%.2f".format(sizeInMBs)} MBs)")
         val sha: String? = if (overrideContent) {
@@ -101,7 +71,7 @@ class GitHubContentsRepository(
         }
         if (!response.status.isSuccess()) {
             logger.warn("Could not upload content to GitHub ($filePath), retrying...")
-            upload(data, name, filePath, commitMessage, overrideContent)
+            upload(data, name, filePath, overrideContent)
         }
     }
 }

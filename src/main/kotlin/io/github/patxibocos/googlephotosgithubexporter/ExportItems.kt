@@ -10,7 +10,7 @@ import java.time.ZoneOffset
 
 class ExportItems(
     private val googlePhotosRepository: GooglePhotosRepository,
-    private val gitHubContentsRepository: GitHubContentsRepository,
+    private val exportRepository: ExportRepository,
     private val logger: Logger = KotlinLogging.logger {}
 ) {
     private fun pathForItem(item: Item): String {
@@ -28,7 +28,7 @@ class ExportItems(
             ItemType.PHOTO -> "last-synced-photo"
             ItemType.VIDEO -> "last-synced-video"
         }
-        val lastItemId = gitHubContentsRepository.get(syncFileName)?.toString(Charsets.UTF_8)?.trim()
+        val lastItemId = exportRepository.get(syncFileName)?.toString(Charsets.UTF_8)?.trim()
         googlePhotosRepository
             .download(itemType, lastItemId)
             .onEmpty {
@@ -38,22 +38,20 @@ class ExportItems(
                 logger.error("Failed fetching content", it)
             }
             .onEach { item ->
-                gitHubContentsRepository.upload(
+                exportRepository.upload(
                     item.bytes,
                     item.name,
-                    pathForItem(item),
-                    "Upload item: ${item.name}"
+                    pathForItem(item)
                 )
             }
             .catch {
                 logger.error("Failed uploading item", it)
             }
             .lastOrNull()?.let {
-                gitHubContentsRepository.upload(
+                exportRepository.upload(
                     it.id.toByteArray(),
                     syncFileName,
                     syncFileName,
-                    "Update last uploaded item",
                     true
                 )
                 logger.info("Last uploaded item: ${it.name}")
