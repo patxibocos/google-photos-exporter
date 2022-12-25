@@ -25,7 +25,7 @@ jobs:
         run: ./gradlew shadowJar
 
       - name: Run photos exporter
-        run: java -jar build/libs/google-photos-github-exporter.jar -gro patxibocos -grn my-photos -it photo -pp photos
+        run: java -jar build/libs/google-photos-github-exporter.jar github -ro patxibocos -rn my-photos -it photo -pp photos
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PHOTOS_REPOSITORY_TOKEN }}
           GOOGLE_PHOTOS_CLIENT_ID: ${{ secrets.GOOGLE_PHOTOS_CLIENT_ID }}
@@ -33,7 +33,7 @@ jobs:
           GOOGLE_PHOTOS_REFRESH_TOKEN: ${{ secrets.GOOGLE_PHOTOS_REFRESH_TOKEN }}
 
       - name: Run videos exporter
-        run: java -jar build/libs/google-photos-github-exporter.jar -gro patxibocos -grn my-videos -it video -mcs 50 -pp videos
+        run: java -jar build/libs/google-photos-github-exporter.jar github -ro patxibocos -rn my-videos -it video -mcs 50 -pp videos
         env:
           GITHUB_TOKEN: ${{ secrets.GH_VIDEOS_REPOSITORY_TOKEN }}
           GOOGLE_PHOTOS_CLIENT_ID: ${{ secrets.GOOGLE_PHOTOS_CLIENT_ID }}

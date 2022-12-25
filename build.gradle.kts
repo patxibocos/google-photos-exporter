@@ -22,6 +22,7 @@ dependencies {
     implementation(libs.kotlin.cli)
     implementation(libs.kotlin.coroutines.core)
     implementation(libs.kotlin.logging)
+    implementation(libs.kotlin.reflect)
     implementation(libs.kotlin.serialization.json)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.client.auth)
