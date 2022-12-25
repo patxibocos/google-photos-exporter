@@ -41,7 +41,7 @@ private data class AppArgs(
     val githubRepoName: String,
     val itemTypes: List<ItemType>,
     val maxChunkSize: Int,
-    val prefixPath: String,
+    val prefixPath: String
 )
 
 private fun getAppArgs(args: Array<String>): AppArgs {
@@ -68,6 +68,6 @@ private fun getAppArgs(args: Array<String>): AppArgs {
         githubRepoName = githubRepoName,
         itemTypes = itemTypes,
         maxChunkSize = maxChunkSize,
-        prefixPath = prefixPath,
+        prefixPath = prefixPath
     )
 }
