@@ -13,18 +13,14 @@ class ExportItems(
     private val gitHubContentsRepository: GitHubContentsRepository,
     private val logger: Logger = KotlinLogging.logger {}
 ) {
-    private fun pathForItem(item: Item, itemType: ItemType): String {
+    private fun pathForItem(item: Item): String {
         val date = item.creationTime.atOffset(ZoneOffset.UTC).toLocalDate()
         val year = date.year.toString()
         val month = "%02d".format(date.monthValue)
         val day = "%02d".format(date.dayOfMonth)
         val dotIndex = item.name.lastIndexOf('.')
         val extension = if (dotIndex != -1) item.name.substring(dotIndex) else ""
-        val prefix = when (itemType) {
-            ItemType.PHOTO -> "photos"
-            ItemType.VIDEO -> "videos"
-        }
-        return "$prefix/$year/$month/$day/${item.id}$extension"
+        return "$year/$month/$day/${item.id}$extension"
     }
 
     suspend operator fun invoke(itemType: ItemType) {
@@ -45,7 +41,7 @@ class ExportItems(
                 gitHubContentsRepository.upload(
                     item.bytes,
                     item.name,
-                    pathForItem(item, itemType),
+                    pathForItem(item),
                     "Upload item: ${item.name}"
                 )
             }

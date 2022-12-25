@@ -14,7 +14,7 @@ fun main(args: Array<String>) {
     val googlePhotosClientId = System.getenv("GOOGLE_PHOTOS_CLIENT_ID")
     val googlePhotosClientSecret = System.getenv("GOOGLE_PHOTOS_CLIENT_SECRET")
     val googlePhotosRefreshToken = System.getenv("GOOGLE_PHOTOS_REFRESH_TOKEN")
-    val (githubRepoOwner, githubRepoName, itemTypes, maxChunkSize) = appArgs
+    val (githubRepoOwner, githubRepoName, itemTypes, maxChunkSize, prefixPath) = appArgs
 
     // Build clients
     val googlePhotosClient = googlePhotosHttpClient()
@@ -23,7 +23,8 @@ fun main(args: Array<String>) {
 
     // Build repositories
     val googlePhotosRepository = GooglePhotosRepository(photosClient, googlePhotosClient)
-    val gitHubContentsRepository = GitHubContentsRepository(githubClient, githubRepoOwner, githubRepoName, maxChunkSize)
+    val gitHubContentsRepository =
+        GitHubContentsRepository(githubClient, githubRepoOwner, githubRepoName, maxChunkSize, prefixPath)
 
     val exportItems = ExportItems(googlePhotosRepository, gitHubContentsRepository)
     runBlocking {
@@ -39,7 +40,8 @@ private data class AppArgs(
     val githubRepoOwner: String,
     val githubRepoName: String,
     val itemTypes: List<ItemType>,
-    val maxChunkSize: Int
+    val maxChunkSize: Int,
+    val prefixPath: String,
 )
 
 private fun getAppArgs(args: Array<String>): AppArgs {
@@ -55,11 +57,17 @@ private fun getAppArgs(args: Array<String>): AppArgs {
         shortName = "mcs",
         description = "Max chunk size when uploading to GitHub"
     ).default(25)
+    val prefixPath by parser.option(
+        ArgType.String,
+        shortName = "pp",
+        description = "Prefix path to use as parent path for content"
+    ).default("")
     parser.parse(args)
     return AppArgs(
         githubRepoOwner = githubRepoOwner,
         githubRepoName = githubRepoName,
         itemTypes = itemTypes,
-        maxChunkSize = maxChunkSize
+        maxChunkSize = maxChunkSize,
+        prefixPath = prefixPath,
     )
 }

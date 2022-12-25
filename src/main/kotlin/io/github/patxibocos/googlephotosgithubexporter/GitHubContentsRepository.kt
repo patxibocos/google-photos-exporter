@@ -22,6 +22,7 @@ class GitHubContentsRepository(
     repoOwner: String,
     repoName: String,
     maxChunkSizeMBs: Int,
+    prefixPath: String,
     private val logger: Logger = KotlinLogging.logger {}
 ) {
     private val maxSizeInBytes = maxChunkSizeMBs * 1024 * 1024
@@ -32,7 +33,7 @@ class GitHubContentsRepository(
     @Serializable
     private data class ResponseBody(@SerialName("download_url") val downloadUrl: String, val sha: String)
 
-    private val basePath = "https://api.github.com/repos/$repoOwner/$repoName/contents"
+    private val basePath = "https://api.github.com/repos/$repoOwner/$repoName/contents/$prefixPath"
 
     suspend fun get(filePath: String): ByteArray? {
         val response = httpClient.get("$basePath/$filePath") {
