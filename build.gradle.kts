@@ -66,4 +66,11 @@ tasks.withType<Jar> {
 
 tasks.withType<ShadowJar> {
     mergeServiceFiles()
+    minimize {
+        exclude(dependency(libs.kotlin.reflect.get()))
+        exclude(dependency(libs.log4j.slf4j2.impl.get()))
+        exclude(dependency(libs.log4j.core.get()))
+        exclude(dependency(libs.google.photos.library.client.get()))
+        exclude(dependency(libs.kotlin.logging.get()))
+    }
 }
