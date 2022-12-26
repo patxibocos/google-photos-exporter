@@ -64,7 +64,7 @@ The app requires passing two mandatory arguments:
 
 and the following **environment variables** to be present:
 
-- **GITHUB_TOKEN**: GitHub personal access token with write access to the repo where photos will be stored
+- **GITHUB_ACCESS_TOKEN**: GitHub personal access token with write access to the repo where photos will be stored
 - **GOOGLE_PHOTOS_CLIENT_ID**: ID of the OAuth client 
 - **GOOGLE_PHOTOS_CLIENT_SECRET**: secret of the OAuth client 
 - **GOOGLE_PHOTOS_REFRESH_TOKEN**: a non expiring refresh token for the OAuth client

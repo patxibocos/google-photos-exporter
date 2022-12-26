@@ -5,7 +5,6 @@ import kotlinx.coroutines.runBlocking
 
 fun main(args: Array<String>) {
     val appArgs = getAppArgs(args)
-    val githubToken = System.getenv("GITHUB_TOKEN")
     val googlePhotosClientId = System.getenv("GOOGLE_PHOTOS_CLIENT_ID")
     val googlePhotosClientSecret = System.getenv("GOOGLE_PHOTOS_CLIENT_SECRET")
     val googlePhotosRefreshToken = System.getenv("GOOGLE_PHOTOS_REFRESH_TOKEN")
@@ -13,21 +12,28 @@ fun main(args: Array<String>) {
 
     // Build clients
     val googlePhotosClient = googlePhotosHttpClient()
-    val githubClient = githubHttpClient(githubToken)
     val photosClient = photosLibraryClient(googlePhotosClientId, googlePhotosClientSecret, googlePhotosRefreshToken)
 
     // Build repositories
     val exportRepository = when (val exporter = appArgs.exporter) {
         is Subcommands.Dropbox -> {
-            TODO("Dropbox exporter not implemented yet")
+            val dropboxRefreshToken = System.getenv("DROPBOX_REFRESH_TOKEN")
+            val dropboxAppKey = System.getenv("DROPBOX_APP_KEY")
+            val dropboxAppSecret = System.getenv("DROPBOX_APP_SECRET")
+            val dropboxClient = dropboxClient(dropboxAppKey, dropboxAppSecret, dropboxRefreshToken)
+            DropboxRepository(dropboxClient, prefixPath)
         }
 
-        is Subcommands.GitHub -> GitHubContentsRepository(
-            githubClient,
-            exporter.data().repoOwner,
-            exporter.data().repoName,
-            prefixPath
-        )
+        is Subcommands.GitHub -> {
+            val githubAccessToken = System.getenv("GITHUB_ACCESS_TOKEN")
+            val client = githubHttpClient(githubAccessToken)
+            GitHubRepository(
+                client,
+                exporter.data().repoOwner,
+                exporter.data().repoName,
+                prefixPath
+            )
+        }
     }.decorate(maxChunkSize)
     val googlePhotosRepository = GooglePhotosRepository(photosClient, googlePhotosClient)
 

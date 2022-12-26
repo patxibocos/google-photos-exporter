@@ -14,7 +14,7 @@ import mu.KotlinLogging
 import org.slf4j.Logger
 import java.util.*
 
-class GitHubContentsRepository(
+class GitHubRepository(
     private val httpClient: HttpClient,
     repoOwner: String,
     repoName: String,
@@ -70,6 +70,7 @@ class GitHubContentsRepository(
             setBody(RequestBody(commitMessage, base64, sha))
         }
         if (!response.status.isSuccess()) {
+            // TODO Check if failure is due to a conflict and log a warn without retrying
             logger.warn("Could not upload content to GitHub ($filePath), retrying...")
             upload(data, name, filePath, overrideContent)
         }

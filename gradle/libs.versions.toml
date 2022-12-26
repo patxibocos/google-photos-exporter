@@ -4,6 +4,7 @@ ktor = "2.2.1"
 log4j = "2.19.0"
 
 [libraries]
+dropbox = "com.dropbox.core:dropbox-core-sdk:5.4.4"
 google-api-client = "com.google.api-client:google-api-client:1.35.1"
 google-oauth2-http = "com.google.auth:google-auth-library-oauth2-http:1.13.0"
 google-photos-library-client = "com.google.photos.library:google-photos-library-client:1.7.2"

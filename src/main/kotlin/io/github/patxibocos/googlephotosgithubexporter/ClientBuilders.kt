@@ -1,5 +1,8 @@
 package io.github.patxibocos.googlephotosgithubexporter
 
+import com.dropbox.core.DbxRequestConfig
+import com.dropbox.core.oauth.DbxCredential
+import com.dropbox.core.v2.DbxClientV2
 import com.google.api.client.googleapis.auth.oauth2.GoogleRefreshTokenRequest
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
@@ -53,12 +56,12 @@ internal fun googlePhotosHttpClient(): HttpClient {
     }
 }
 
-internal fun githubHttpClient(token: String): HttpClient {
+internal fun githubHttpClient(accessToken: String): HttpClient {
     return HttpClient(CIO) {
         install(Auth) {
             bearer {
                 loadTokens {
-                    BearerTokens(token, "")
+                    BearerTokens(accessToken, "")
                 }
             }
         }
@@ -72,5 +75,20 @@ internal fun githubHttpClient(token: String): HttpClient {
         install(HttpTimeout) {
             requestTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
         }
+    }
+}
+
+internal fun dropboxClient(appKey: String, appSecret: String, refreshToken: String): DbxClientV2 {
+    val config = DbxRequestConfig.newBuilder("google-photos-exporter").build()
+    val credentials = DbxCredential(
+        "",
+        Long.MAX_VALUE,
+        refreshToken,
+        appKey,
+        appSecret
+    )
+    return DbxClientV2(config, credentials).apply {
+        // Forcing refresh as we are initially passing an empty token
+        this.refreshAccessToken()
     }
 }
