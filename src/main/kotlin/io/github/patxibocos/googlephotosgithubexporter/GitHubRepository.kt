@@ -6,6 +6,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import kotlinx.serialization.SerialName
@@ -50,8 +51,6 @@ class GitHubRepository(
         overrideContent: Boolean
     ) {
         val commitMessage = "Upload $name"
-        val sizeInMBs = data.size.toFloat() / 1024 / 1024
-        logger.info("Uploading $name (${"%.2f".format(sizeInMBs)} MBs)")
         val sha: String? = if (overrideContent) {
             val response = httpClient.get("$basePath/$filePath") {
                 contentType(ContentType.Application.Json)
@@ -69,10 +68,8 @@ class GitHubRepository(
             contentType(ContentType.Application.Json)
             setBody(RequestBody(commitMessage, base64, sha))
         }
-        if (!response.status.isSuccess()) {
-            // TODO Check if failure is due to a conflict and log a warn without retrying
-            logger.warn("Could not upload content to GitHub ($filePath), retrying...")
-            upload(data, name, filePath, overrideContent)
+        if (response.status == HttpStatusCode.UnprocessableEntity) {
+            logger.warn("File $filePath already exists")
         }
     }
 }

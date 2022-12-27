@@ -25,7 +25,7 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         ArgType.Int,
         shortName = "mcs",
         description = "Max chunk size when uploading to GitHub"
-    ).default(25)
+    ).default(2048)
     val prefixPath by parser.option(
         ArgType.String,
         shortName = "pp",
