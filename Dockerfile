@@ -3,7 +3,7 @@ WORKDIR /app
 COPY . /app
 RUN gradle shadowJar
 
-FROM openjdk:8-jre-slim as runner
+FROM amazoncorretto:8-alpine-jre as runner
 WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar /app/google-photos-github-exporter.jar
 
