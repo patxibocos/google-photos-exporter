@@ -15,7 +15,7 @@ fun main(args: Array<String>) {
     val photosClient = photosLibraryClient(googlePhotosClientId, googlePhotosClientSecret, googlePhotosRefreshToken)
 
     // Build repositories
-    val exportRepository = when (val exporter = appArgs.exporter) {
+    val exportRepository = when (appArgs.exporter) {
         is Subcommands.Dropbox -> {
             val dropboxRefreshToken = System.getenv("DROPBOX_REFRESH_TOKEN")
             val dropboxAppKey = System.getenv("DROPBOX_APP_KEY")
