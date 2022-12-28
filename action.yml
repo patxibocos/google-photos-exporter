@@ -58,3 +58,6 @@ runs:
     DROPBOX_APP_KEY: ${{ inputs.dropboxAppKey }}
     DROPBOX_APP_SECRET: ${{ inputs.dropboxAppSecret }}
     DROPBOX_REFRESH_TOKEN: ${{ inputs.dropboxRefreshToken }}
+branding:
+  icon: 'camera'
+  color: 'blue'
