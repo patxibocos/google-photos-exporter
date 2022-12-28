@@ -15,8 +15,15 @@ interface ExportRepository {
         overrideContent: Boolean = false
     )
 
-    fun decorate(maxChunkSize: Int): ExportRepository =
-        RetryDecorator(SplitDecorator(LoggingDecorator(this), maxChunkSize), 3)
+    fun decorate(maxChunkSize: Int?): ExportRepository {
+        return RetryDecorator(LoggingDecorator(this), 3).let { decorator ->
+            if (maxChunkSize != null) {
+                SplitDecorator(decorator, maxChunkSize)
+            } else {
+                decorator
+            }
+        }
+    }
 }
 
 class LoggingDecorator(private val repository: ExportRepository, private val logger: Logger = KotlinLogging.logger {}) :

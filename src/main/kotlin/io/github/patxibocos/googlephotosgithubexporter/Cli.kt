@@ -12,7 +12,7 @@ import kotlinx.cli.required
 
 internal data class AppArgs(
     val itemTypes: List<ItemType>,
-    val maxChunkSize: Int,
+    val maxChunkSize: Int?,
     val prefixPath: String,
     val exporter: Subcommands<*>
 )
@@ -25,7 +25,7 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         ArgType.Int,
         shortName = "mcs",
         description = "Max chunk size when uploading to GitHub"
-    ).default(2048)
+    )
     val prefixPath by parser.option(
         ArgType.String,
         shortName = "pp",
