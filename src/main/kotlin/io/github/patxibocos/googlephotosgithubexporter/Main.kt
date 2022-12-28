@@ -27,10 +27,12 @@ fun main(args: Array<String>) {
         is Subcommands.GitHub -> {
             val githubAccessToken = System.getenv("GITHUB_ACCESS_TOKEN")
             val client = githubHttpClient(githubAccessToken)
+            val githubRepositoryOwner = System.getenv("GITHUB_REPOSITORY_OWNER")
+            val githubRepositoryName = System.getenv("GITHUB_REPOSITORY_NAME")
             GitHubRepository(
                 client,
-                exporter.data().repoOwner,
-                exporter.data().repoName,
+                githubRepositoryOwner,
+                githubRepositoryName,
                 prefixPath
             )
         }

@@ -1,0 +1,33 @@
+name: 'Google Photos exporter'
+description: 'Exports Google Photos to different targets'
+inputs:
+  target:
+    description: 'Where to store content'
+    required: true
+  itemType:
+    description: 'Allows exporting just specific item types (photo or video)'
+    required: false
+  prefixPath:
+    description: 'Path to be used as base for the exported files'
+    required: false
+  maxChunkSize:
+    description: 'Maximum size (in MB) of each chunk'
+    required: false
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    - ${{ inputs.target }}
+    - ${{ inputs.itemType }}
+    - ${{ inputs.prefixPath }}
+    - ${{ inputs.maxChunkSize }}
+  env:
+    GOOGLE_PHOTOS_CLIENT_ID: ${{ inputs.googlePhotosClientId }}
+    GOOGLE_PHOTOS_CLIENT_SECRET: ${{ inputs.googlePhotosClientSecret }}
+    GOOGLE_PHOTOS_REFRESH_TOKEN: ${{ inputs.googlePhotosRefreshToken }}
+    GITHUB_ACCESS_TOKEN: ${{ inputs.githubAccessToken }}
+    GITHUB_REPOSITORY_OWNER: ${{ inputs.githubRepositoryOwner }}
+    GITHUB_REPOSITORY_NAME: ${{ inputs.githubRepositoryName }}
+    DROPBOX_APP_KEY: ${{ inputs.dropboxAppKey }}
+    DROPBOX_APP_SECRET: ${{ inputs.dropboxAppSecret }}
+    DROPBOX_REFRESH_TOKEN: ${{ inputs.dropboxRefreshToken }}

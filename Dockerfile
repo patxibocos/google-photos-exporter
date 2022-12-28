@@ -6,5 +6,6 @@ RUN gradle shadowJar
 FROM amazoncorretto:8-alpine-jre as runner
 WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar /app/google-photos-github-exporter.jar
+COPY --from=builder /entrypoint.sh /entrypoint.sh
 
-ENTRYPOINT ["java","-jar","/app/google-photos-github-exporter.jar"]
+ENTRYPOINT ["/entrypoint.sh"]
