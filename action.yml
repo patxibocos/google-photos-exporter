@@ -1,9 +1,36 @@
 name: 'Google Photos exporter'
 description: 'Exports Google Photos to different targets'
 inputs:
-  target:
-    description: 'Where to store content'
+  googlePhotosClientId:
+    description: 'Google photos client ID'
     required: true
+  googlePhotosClientSecret:
+    description: 'Google photos client secret'
+    required: true
+  googlePhotosRefreshToken:
+    description: 'Google photos refresh token'
+    required: true
+  target:
+    description: 'Where to store content (github or dropbox)'
+    required: true
+  githubAccessToken:
+    description: 'GitHub access token'
+    required: false
+  githubRepositoryOwner:
+    description: 'GitHub repository owner'
+    required: false
+  githubRepositoryName:
+    description: 'GitHub repository name'
+    required: false
+  dropboxAppKey:
+    description: 'Dropbox app key'
+    required: false
+  dropboxAppSecret:
+    description: 'Dropbox app secret'
+    required: false
+  dropboxRefreshToken:
+    description: 'Dropbox refresh token'
+    required: false
   itemType:
     description: 'Allows exporting just specific item types (photo or video)'
     required: false

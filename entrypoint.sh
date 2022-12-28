@@ -1,3 +1,15 @@
 #!/bin/sh -l
 
-java -jar /app/google-photos-github-exporter.jar $1 -it $2 -mcs $3 -pp $4
+command="java -jar /app/google-photos-github-exporter.jar $1"
+if [ -n "$2" ]; then
+  command="$command -it $2"
+fi
+if [ -n "$3" ]; then
+  command="$command -mcs $3"
+fi
+if [ -n "$4" ]; then
+  command="$command -pp $4"
+fi
+
+echo "Running: $command"
+$command
