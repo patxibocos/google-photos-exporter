@@ -1,1 +1,1 @@
-rootProject.name = "google-photos-github-exporter"
+rootProject.name = "google-photos-exporter"

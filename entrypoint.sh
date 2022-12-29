@@ -1,6 +1,6 @@
 #!/bin/sh -l
 
-command="java -jar /app/google-photos-github-exporter.jar $1"
+command="java -jar /app/google-photos-exporter.jar $1"
 if [ -n "$2" ]; then
   command="$command -it $2"
 fi

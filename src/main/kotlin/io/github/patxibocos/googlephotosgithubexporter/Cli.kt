@@ -17,7 +17,7 @@ internal data class AppArgs(
 )
 
 internal fun getAppArgs(args: Array<String>): AppArgs {
-    val parser = ArgParser("google-photos-github-exporter")
+    val parser = ArgParser("google-photos-exporter")
     val itemTypes by parser.option(ArgType.Choice<ItemType>(), shortName = "it", description = "Item types to include")
         .multiple().default(ItemType.values().toList())
     val maxChunkSize by parser.option(

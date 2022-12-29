@@ -1,8 +1,8 @@
-# Google Photos GitHub exporter
+# Google Photos exporter
 
-## What is google-photos-github-exporter ❓
+## What is google-photos-exporter ❓
 
-`google-photos-github-exporter` is an app that fetches every photo from Google Photos library and uploads it to GitHub.
+`google-photos-exporter` is an app that fetches every photo from Google Photos library and uploads it to GitHub.
 
 ## Build 🔨
 
@@ -44,11 +44,11 @@ After completing the steps, you should get the client ID, client secret and refr
 The app can be executed from the command line:
 
 ```shell
-java -jar google-photos-github-exporter.jar -h
+java -jar google-photos-exporter.jar -h
 ```
 
 ```shell
-Usage: google-photos-github-exporter options_list
+Usage: google-photos-exporter options_list
 Options:
     --githubRepoOwner, -gro -> GitHub repository owner (always required) { String }
     --githubRepoName, -grn -> GitHub repository name (always required) { String }
