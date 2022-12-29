@@ -11,6 +11,7 @@ import java.time.ZoneOffset
 class ExportItems(
     private val googlePhotosRepository: GooglePhotosRepository,
     private val exportRepository: ExportRepository,
+    private val offsetId: String?,
     private val logger: Logger = KotlinLogging.logger {}
 ) {
     private fun pathForItem(item: Item): String {
@@ -28,7 +29,7 @@ class ExportItems(
             ItemType.PHOTO -> "last-synced-photo"
             ItemType.VIDEO -> "last-synced-video"
         }
-        val lastItemId = exportRepository.get(syncFileName)?.toString(Charsets.UTF_8)?.trim()
+        val lastItemId = offsetId?.trim() ?: exportRepository.get(syncFileName)?.toString(Charsets.UTF_8)?.trim()
         googlePhotosRepository
             .download(itemType, lastItemId)
             .onEmpty {

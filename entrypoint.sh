@@ -10,6 +10,9 @@ fi
 if [ -n "$4" ]; then
   command="$command -mcs $4"
 fi
+if [ -n "$5" ]; then
+  command="$command -oi $5"
+fi
 
 echo "Running: $command"
 $command

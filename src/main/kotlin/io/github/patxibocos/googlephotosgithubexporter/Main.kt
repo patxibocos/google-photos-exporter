@@ -8,7 +8,7 @@ fun main(args: Array<String>) {
     val googlePhotosClientId = System.getenv("GOOGLE_PHOTOS_CLIENT_ID")
     val googlePhotosClientSecret = System.getenv("GOOGLE_PHOTOS_CLIENT_SECRET")
     val googlePhotosRefreshToken = System.getenv("GOOGLE_PHOTOS_REFRESH_TOKEN")
-    val (itemTypes, maxChunkSize, prefixPath) = appArgs
+    val (itemTypes, maxChunkSize, prefixPath, offsetId) = appArgs
 
     // Build clients
     val googlePhotosClient = googlePhotosHttpClient()
@@ -39,7 +39,7 @@ fun main(args: Array<String>) {
     }.decorate(maxChunkSize)
     val googlePhotosRepository = GooglePhotosRepository(photosClient, googlePhotosClient)
 
-    val exportItems = ExportItems(googlePhotosRepository, exportRepository)
+    val exportItems = ExportItems(googlePhotosRepository, exportRepository, offsetId)
     runBlocking {
         itemTypes.forEach { itemType ->
             launch {

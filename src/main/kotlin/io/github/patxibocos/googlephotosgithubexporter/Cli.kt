@@ -13,6 +13,7 @@ internal data class AppArgs(
     val itemTypes: List<ItemType>,
     val maxChunkSize: Int?,
     val prefixPath: String,
+    val offsetId: String?,
     val exporter: Subcommands<*>
 )
 
@@ -30,6 +31,11 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         shortName = "pp",
         description = "Prefix path to use as parent path for content"
     ).default("")
+    val offsetId by parser.option(
+        ArgType.String,
+        shortName = "oi",
+        description = "ID of the item to use as offset (not included)"
+    )
     parser.subcommands(Subcommands.GitHub, Subcommands.Dropbox)
     val parserResult = parser.parse(args)
     val exporter = Subcommands.byName(parserResult.commandName)
@@ -37,6 +43,7 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         itemTypes = itemTypes,
         maxChunkSize = maxChunkSize,
         prefixPath = prefixPath,
+        offsetId = offsetId,
         exporter = exporter
     )
 }

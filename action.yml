@@ -40,6 +40,9 @@ inputs:
   maxChunkSize:
     description: 'Maximum size (in MB) of each chunk'
     required: false
+  offsetId:
+    description: 'ID of the item to use as offset (not included)'
+    required: false
 runs:
   using: 'docker'
   image: 'Dockerfile'
@@ -48,6 +51,7 @@ runs:
     - ${{ inputs.itemType }}
     - ${{ inputs.prefixPath }}
     - ${{ inputs.maxChunkSize }}
+    - ${{ inputs.offsetId }}
   env:
     GOOGLE_PHOTOS_CLIENT_ID: ${{ inputs.googlePhotosClientId }}
     GOOGLE_PHOTOS_CLIENT_SECRET: ${{ inputs.googlePhotosClientSecret }}

@@ -49,7 +49,9 @@ Additionally there are target dependant mandatory fields.
     # Dropbox app secret
     dropboxAppSecret:
     # Dropbox refresh token
-    dropboxRefreshToken: 
+    dropboxRefreshToken:
+    # ID of the item to use as offset (not included)
+    offsetId:
 ```
 
 ## Auth setup 👮‍♀️
@@ -113,6 +115,7 @@ Options:
     --itemTypes, -it [PHOTO, VIDEO] -> Item types to include { Value should be one of [photo, video] }
     --maxChunkSize, -mcs -> Max chunk size when uploading to GitHub { Int }
     --prefixPath, -pp [] -> Prefix path to use as parent path for content { String }
+    --offsetId, -oi -> ID of the item to use as offset (not included) { String }
     --help, -h -> Usage info 
 ```
 
