@@ -29,11 +29,12 @@ class GooglePhotosRepository(
     private val logger: Logger = KotlinLogging.logger {}
 ) {
 
-    private suspend fun buildItem(itemType: ItemType, mediaItem: MediaItem): Item {
+    private suspend fun buildItem(mediaItem: MediaItem): Item {
         val creationTime = mediaItem.mediaMetadata.creationTime
-        val suffix = when (itemType) {
-            ItemType.PHOTO -> "d"
-            ItemType.VIDEO -> "dv"
+        val suffix = when {
+            mediaItem.mediaMetadata.hasVideo() -> "dv"
+            mediaItem.mediaMetadata.hasPhoto() -> "d"
+            else -> IllegalStateException("Unknown type, is this MediaItem a video or a photo?")
         }
         val fullSizeUrl = "${mediaItem.baseUrl}=$suffix"
         val response = httpClient.get(fullSizeUrl)
@@ -59,14 +60,16 @@ class GooglePhotosRepository(
         return client.listMediaItems(request.build())
     }
 
-    private fun mediaItemFilter(itemType: ItemType) = { mediaItem: MediaItem ->
-        when (itemType) {
-            ItemType.PHOTO -> mediaItem.mediaMetadata.hasPhoto()
-            ItemType.VIDEO -> mediaItem.mediaMetadata.hasVideo()
+    private fun mediaItemFilter(itemTypes: List<ItemType>): (MediaItem) -> Boolean = { mediaItem: MediaItem ->
+        itemTypes.any {
+            when (it) {
+                ItemType.PHOTO -> mediaItem.mediaMetadata.hasPhoto()
+                ItemType.VIDEO -> mediaItem.mediaMetadata.hasVideo()
+            }
         }
     }
 
-    fun download(itemType: ItemType, lastItemId: String? = null): Flow<Item> = flow {
+    fun download(itemTypes: List<ItemType>, lastItemId: String? = null): Flow<Item> = flow {
         fun getItems(lastItemId: String?): List<MediaItem> {
             // listMediaItems API doesn't support ordering, so this will start fetching recent pages until:
             //  - lastItemId is null -> every page
@@ -77,11 +80,10 @@ class GooglePhotosRepository(
                 while (true) {
                     val googlePhotosResponse = fetchItems(client, nextPageToken)
                     nextPageToken = googlePhotosResponse.nextPageToken
-                    val items =
-                        googlePhotosResponse.page.response.mediaItemsList.filter { mediaItemFilter(itemType)(it) }
+                    val items = googlePhotosResponse.page.response.mediaItemsList
                     val newItems = items.takeWhile {
                         it.id != lastItemId
-                    }
+                    }.filter { mediaItemFilter(itemTypes)(it) }
                     mediaItems.addAll(newItems)
                     if (newItems.size != items.size || nextPageToken.isEmpty()) {
                         break
@@ -98,7 +100,7 @@ class GooglePhotosRepository(
             logger.info("${mediaItems.size} new items identified")
             try {
                 mediaItems.forEach { mediaItem ->
-                    val item = buildItem(itemType, mediaItem)
+                    val item = buildItem(mediaItem)
                     emit(item)
                     lastEmittedId = mediaItem.id
                 }

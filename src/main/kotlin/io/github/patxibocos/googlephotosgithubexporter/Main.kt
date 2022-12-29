@@ -1,6 +1,5 @@
 package io.github.patxibocos.googlephotosgithubexporter
 
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 fun main(args: Array<String>) {
@@ -41,10 +40,6 @@ fun main(args: Array<String>) {
 
     val exportItems = ExportItems(googlePhotosRepository, exportRepository, offsetId)
     runBlocking {
-        itemTypes.forEach { itemType ->
-            launch {
-                exportItems(itemType)
-            }
-        }
+        exportItems(itemTypes)
     }
 }

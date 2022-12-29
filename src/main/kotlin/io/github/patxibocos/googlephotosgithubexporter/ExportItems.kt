@@ -14,6 +14,8 @@ class ExportItems(
     private val offsetId: String?,
     private val logger: Logger = KotlinLogging.logger {}
 ) {
+
+    private val syncFileName = "last-synced-item"
     private fun pathForItem(item: Item): String {
         val date = item.creationTime.atOffset(ZoneOffset.UTC).toLocalDate()
         val year = date.year.toString()
@@ -24,14 +26,10 @@ class ExportItems(
         return "$year/$month/$day/${item.id}$extension"
     }
 
-    suspend operator fun invoke(itemType: ItemType) {
-        val syncFileName = when (itemType) {
-            ItemType.PHOTO -> "last-synced-photo"
-            ItemType.VIDEO -> "last-synced-video"
-        }
+    suspend operator fun invoke(itemTypes: List<ItemType>) {
         val lastItemId = offsetId?.trim() ?: exportRepository.get(syncFileName)?.toString(Charsets.UTF_8)?.trim()
         googlePhotosRepository
-            .download(itemType, lastItemId)
+            .download(itemTypes, lastItemId)
             .onEmpty {
                 logger.info("No new content")
             }
