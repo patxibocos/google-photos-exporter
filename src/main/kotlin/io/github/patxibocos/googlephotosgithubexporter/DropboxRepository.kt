@@ -6,6 +6,8 @@ import com.dropbox.core.v2.files.LookupError
 import com.dropbox.core.v2.files.UploadErrorException
 import mu.KotlinLogging
 import org.slf4j.Logger
+import java.nio.file.Paths
+import kotlin.io.path.pathString
 
 class DropboxRepository(
     private val client: DbxClientV2,
@@ -28,7 +30,8 @@ class DropboxRepository(
 
     override suspend fun upload(data: ByteArray, name: String, filePath: String, overrideContent: Boolean) {
         try {
-            client.files().upload("/$prefixPath/$filePath").uploadAndFinish(data.inputStream())
+            val normalizedPath = Paths.get("/", prefixPath, filePath).normalize().pathString
+            client.files().upload(normalizedPath).uploadAndFinish(data.inputStream())
         } catch (e: UploadErrorException) {
             if (e.errorValue.pathValue.reason.isConflict) {
                 logger.warn("File $filePath already exists")
