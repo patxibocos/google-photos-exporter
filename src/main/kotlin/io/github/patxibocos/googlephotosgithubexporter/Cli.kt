@@ -36,7 +36,7 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         shortName = "oi",
         description = "ID of the item to use as offset (not included)"
     )
-    parser.subcommands(Subcommands.GitHub, Subcommands.Dropbox)
+    parser.subcommands(Subcommands.GitHub, Subcommands.Dropbox, Subcommands.Box)
     val parserResult = parser.parse(args)
     val exporter = Subcommands.byName(parserResult.commandName)
     return AppArgs(
@@ -68,6 +68,12 @@ sealed interface Subcommands<T> {
     }
 
     object Dropbox : Subcommand("dropbox", "Dropbox exporter"), Subcommands<Unit> {
+        override fun execute() {}
+
+        override fun data() = Unit
+    }
+
+    object Box : Subcommand("box", "Box exporter"), Subcommands<Unit> {
         override fun execute() {}
 
         override fun data() = Unit

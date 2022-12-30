@@ -1,5 +1,7 @@
 package io.github.patxibocos.googlephotosgithubexporter
 
+import com.box.sdk.BoxAPIConnection
+import com.box.sdk.BoxCCGAPIConnection
 import com.dropbox.core.DbxRequestConfig
 import com.dropbox.core.oauth.DbxCredential
 import com.dropbox.core.v2.DbxClientV2
@@ -91,4 +93,12 @@ internal fun dropboxClient(appKey: String, appSecret: String, refreshToken: Stri
         // Forcing refresh as we are initially passing an empty token
         this.refreshAccessToken()
     }
+}
+
+internal fun boxClient(boxClientId: String, boxClientSecret: String, boxUserId: String): BoxAPIConnection {
+    return BoxCCGAPIConnection.userConnection(boxClientId, boxClientSecret, boxUserId)
+}
+
+internal fun boxHttpClient(): HttpClient {
+    return HttpClient(CIO)
 }

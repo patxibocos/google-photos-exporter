@@ -4,6 +4,7 @@ ktor = "2.2.1"
 log4j = "2.19.0"
 
 [libraries]
+box = "com.box:box-java-sdk:3.8.1"
 dropbox = "com.dropbox.core:dropbox-core-sdk:5.4.4"
 google-api-client = "com.google.api-client:google-api-client:1.35.1"
 google-oauth2-http = "com.google.auth:google-auth-library-oauth2-http:1.13.0"

@@ -15,7 +15,7 @@ fun main(args: Array<String>) {
 
     // Build repositories
     val exportRepository = when (appArgs.exporter) {
-        is Subcommands.Dropbox -> {
+        Subcommands.Dropbox -> {
             val dropboxRefreshToken = System.getenv("DROPBOX_REFRESH_TOKEN")
             val dropboxAppKey = System.getenv("DROPBOX_APP_KEY")
             val dropboxAppSecret = System.getenv("DROPBOX_APP_SECRET")
@@ -23,17 +23,26 @@ fun main(args: Array<String>) {
             DropboxRepository(dropboxClient, prefixPath)
         }
 
-        is Subcommands.GitHub -> {
+        Subcommands.GitHub -> {
             val githubAccessToken = System.getenv("GITHUB_ACCESS_TOKEN")
-            val client = githubHttpClient(githubAccessToken)
+            val httpClient = githubHttpClient(githubAccessToken)
             val githubRepositoryOwner = System.getenv("GITHUB_REPOSITORY_OWNER")
             val githubRepositoryName = System.getenv("GITHUB_REPOSITORY_NAME")
             GitHubRepository(
-                client,
+                httpClient,
                 githubRepositoryOwner,
                 githubRepositoryName,
                 prefixPath
             )
+        }
+
+        Subcommands.Box -> {
+            val boxClientId = System.getenv("BOX_CLIENT_ID")
+            val boxClientSecret = System.getenv("BOX_CLIENT_SECRET")
+            val boxUserId = System.getenv("BOX_USER_ID")
+            val client = boxClient(boxClientId, boxClientSecret, boxUserId)
+            val httpClient = boxHttpClient()
+            BoxRepository(client, httpClient, prefixPath)
         }
     }.decorate(maxChunkSize)
     val googlePhotosRepository = GooglePhotosRepository(photosClient, googlePhotosClient)

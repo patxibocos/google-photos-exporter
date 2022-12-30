@@ -16,6 +16,7 @@ repositories {
 }
 
 dependencies {
+    implementation(libs.box)
     implementation(libs.dropbox)
     implementation(libs.google.api.client)
     implementation(libs.google.oauth2.http)
