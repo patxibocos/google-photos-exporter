@@ -31,6 +31,15 @@ inputs:
   dropboxRefreshToken:
     description: 'Dropbox refresh token'
     required: false
+  boxClientId:
+    description: 'Box client ID'
+    required: false
+  boxClientSecret:
+    description: 'Box client secret'
+    required: false
+  boxUserId:
+    description: 'Box user ID'
+    required: false
   itemType:
     description: 'Allows exporting just specific item types (photo or video)'
     required: false
@@ -62,6 +71,9 @@ runs:
     DROPBOX_APP_KEY: ${{ inputs.dropboxAppKey }}
     DROPBOX_APP_SECRET: ${{ inputs.dropboxAppSecret }}
     DROPBOX_REFRESH_TOKEN: ${{ inputs.dropboxRefreshToken }}
+    BOX_CLIENT_ID: ${{ inputs.boxClientId }}
+    BOX_CLIENT_SECRET: ${{ inputs.boxClientSecret }}
+    BOX_USER_ID: ${{ inputs.boxUserId }}
 branding:
   icon: 'camera'
   color: 'blue'
