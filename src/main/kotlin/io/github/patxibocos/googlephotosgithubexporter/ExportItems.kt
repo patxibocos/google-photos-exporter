@@ -26,7 +26,8 @@ class ExportItems(
         return "$year/$month/$day/${item.id}$extension"
     }
 
-    suspend operator fun invoke(itemTypes: List<ItemType>) {
+    suspend operator fun invoke(itemTypes: List<ItemType>): Int {
+        var exitCode = 0
         val lastItemId = offsetId?.trim() ?: exportRepository.get(syncFileName)?.toString(Charsets.UTF_8)?.trim()
         googlePhotosRepository
             .download(itemTypes, lastItemId)
@@ -35,6 +36,7 @@ class ExportItems(
             }
             .catch {
                 logger.error("Failed fetching content", it)
+                exitCode = 1
             }
             .onEach { item ->
                 exportRepository.upload(
@@ -45,6 +47,7 @@ class ExportItems(
             }
             .catch {
                 logger.error("Failed uploading item", it)
+                exitCode = 2
             }
             .lastOrNull()?.let {
                 exportRepository.upload(
@@ -55,5 +58,6 @@ class ExportItems(
                 )
                 logger.info("Last uploaded item: ${it.name}")
             }
+        return exitCode
     }
 }

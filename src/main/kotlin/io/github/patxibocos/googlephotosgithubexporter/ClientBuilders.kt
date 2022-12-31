@@ -23,8 +23,11 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
-internal fun photosLibraryClient(clientId: String, clientSecret: String, refreshToken: String): PhotosLibraryClient {
+internal fun photosLibraryClient(): PhotosLibraryClient {
     fun getNewAccessToken(): String {
+        val clientId = System.getenv("GOOGLE_PHOTOS_CLIENT_ID")
+        val clientSecret = System.getenv("GOOGLE_PHOTOS_CLIENT_SECRET")
+        val refreshToken = System.getenv("GOOGLE_PHOTOS_REFRESH_TOKEN")
         val scopes = listOf("https://www.googleapis.com/auth/photoslibrary.readonly")
         val tokenResponse =
             GoogleRefreshTokenRequest(
