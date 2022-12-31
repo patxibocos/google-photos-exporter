@@ -7,23 +7,23 @@ import kotlinx.coroutines.flow.onEmpty
 import mu.KotlinLogging
 import org.slf4j.Logger
 import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 class ExportItems(
     private val googlePhotosRepository: GooglePhotosRepository,
     private val exportRepository: ExportRepository,
     private val offsetId: String?,
+    private val datePathPattern: String,
     private val logger: Logger = KotlinLogging.logger {}
 ) {
 
     private val syncFileName = "last-synced-item"
     private fun pathForItem(item: Item): String {
         val date = item.creationTime.atOffset(ZoneOffset.UTC).toLocalDate()
-        val year = date.year.toString()
-        val month = "%02d".format(date.monthValue)
-        val day = "%02d".format(date.dayOfMonth)
+        val datePath = date.format(DateTimeFormatter.ofPattern(datePathPattern))
         val dotIndex = item.name.lastIndexOf('.')
         val extension = if (dotIndex != -1) item.name.substring(dotIndex) else ""
-        return "$year/$month/$day/${item.id}$extension"
+        return "$datePath/${item.id}$extension"
     }
 
     suspend operator fun invoke(itemTypes: List<ItemType>): Int {

@@ -43,14 +43,17 @@ inputs:
   itemType:
     description: 'Allows exporting just specific item types (photo or video)'
     required: false
-  prefixPath:
-    description: 'Path to be used as base for the exported files'
-    required: false
   maxChunkSize:
     description: 'Maximum size (in MB) of each chunk'
     required: false
+  prefixPath:
+    description: 'Path to be used as base for the exported files'
+    required: false
   offsetId:
     description: 'ID of the item to use as offset (not included)'
+    required: false
+  datePatternPath:
+    description: 'LocalDate pattern to use for the path of the item'
     required: false
 runs:
   using: 'docker'
@@ -58,9 +61,10 @@ runs:
   args:
     - ${{ inputs.target }}
     - ${{ inputs.itemType }}
-    - ${{ inputs.prefixPath }}
     - ${{ inputs.maxChunkSize }}
+    - ${{ inputs.prefixPath }}
     - ${{ inputs.offsetId }}
+    - ${{ inputs.datePatternPath }}
   env:
     GOOGLE_PHOTOS_CLIENT_ID: ${{ inputs.googlePhotosClientId }}
     GOOGLE_PHOTOS_CLIENT_SECRET: ${{ inputs.googlePhotosClientSecret }}

@@ -5,7 +5,7 @@ import kotlin.system.exitProcess
 
 fun main(args: Array<String>) {
     val appArgs = getAppArgs(args)
-    val (itemTypes, maxChunkSize, prefixPath, offsetId) = appArgs
+    val (itemTypes, maxChunkSize, prefixPath, offsetId, datePathPattern) = appArgs
 
     val googlePhotosClient = googlePhotosHttpClient()
     val photosClient = photosLibraryClient()
@@ -13,7 +13,7 @@ fun main(args: Array<String>) {
     val exportRepository = ExportRepository.forExporter(appArgs.exporter, prefixPath, maxChunkSize)
     val googlePhotosRepository = GooglePhotosRepository(photosClient, googlePhotosClient)
 
-    val exportItems = ExportItems(googlePhotosRepository, exportRepository, offsetId)
+    val exportItems = ExportItems(googlePhotosRepository, exportRepository, offsetId, datePathPattern)
     runBlocking {
         val exitCode = exportItems(itemTypes)
         exitProcess(exitCode)

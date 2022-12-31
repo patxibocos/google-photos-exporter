@@ -14,12 +14,17 @@ internal data class AppArgs(
     val maxChunkSize: Int?,
     val prefixPath: String,
     val offsetId: String?,
+    val datePathPattern: String,
     val exporter: Subcommands<*>
 )
 
 internal fun getAppArgs(args: Array<String>): AppArgs {
     val parser = ArgParser("google-photos-exporter")
-    val itemTypes by parser.option(ArgType.Choice<ItemType>(), shortName = "it", description = "Item types to include")
+    val itemTypes by parser.option(
+        ArgType.Choice<ItemType>(),
+        shortName = "it",
+        description = "Item types to include"
+    )
         .multiple().default(ItemType.values().toList())
     val maxChunkSize by parser.option(
         ArgType.Int,
@@ -36,6 +41,11 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         shortName = "oi",
         description = "ID of the item to use as offset (not included)"
     )
+    val datePathPattern by parser.option(
+        ArgType.String,
+        shortName = "dpp",
+        description = "LocalDate pattern to use for the path of the item"
+    ).default("yyyy/MM/dd")
     parser.subcommands(Subcommands.GitHub, Subcommands.Dropbox, Subcommands.Box)
     val parserResult = parser.parse(args)
     val exporter = Subcommands.byName(parserResult.commandName)
@@ -44,6 +54,7 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         maxChunkSize = maxChunkSize,
         prefixPath = prefixPath,
         offsetId = offsetId,
+        datePathPattern = datePathPattern,
         exporter = exporter
     )
 }

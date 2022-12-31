@@ -63,6 +63,8 @@ Additionally there are target dependant mandatory fields.
     boxUserId:
     # ID of the item to use as offset (not included)
     offsetId:
+    # LocalDate pattern to use for the path of the item
+    datePatternPath:
 ```
 
 ## Auth setup 👮‍♀️
@@ -148,6 +150,7 @@ Options:
     --maxChunkSize, -mcs -> Max chunk size when uploading to GitHub { Int }
     --prefixPath, -pp [] -> Prefix path to use as parent path for content { String }
     --offsetId, -oi -> ID of the item to use as offset (not included) { String }
+    --datePathPattern, -dpp [yyyy/MM/dd] -> LocalDate pattern to use for the path of the item { String }
     --help, -h -> Usage info 
 ```
 
