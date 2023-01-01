@@ -4,6 +4,7 @@ import com.google.photos.library.v1.PhotosLibraryClient
 import com.google.photos.library.v1.internal.InternalPhotosLibraryClient
 import com.google.photos.library.v1.proto.ListMediaItemsRequest
 import com.google.photos.types.proto.MediaItem
+import com.google.photos.types.proto.VideoProcessingStatus
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -22,6 +23,9 @@ enum class ItemType {
 }
 
 object GooglePhotosItemForbidden : Exception()
+
+private fun MediaItem.isNotReady(): Boolean =
+    this.mediaMetadata.hasVideo() && this.mediaMetadata.video.status != VideoProcessingStatus.READY
 
 class GooglePhotosRepository(
     private val photosLibraryClient: PhotosLibraryClient,
@@ -100,6 +104,10 @@ class GooglePhotosRepository(
             logger.info("${mediaItems.size} new items identified")
             try {
                 mediaItems.forEach { mediaItem ->
+                    if (mediaItem.isNotReady()) {
+                        logger.warn("Item ${mediaItem.filename} is not ready yet, stopping here")
+                        return@flow
+                    }
                     val item = buildItem(mediaItem)
                     emit(item)
                     lastEmittedId = mediaItem.id
