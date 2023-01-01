@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Google Photos exporter (photos)
-        uses: patxibocos/google-photos-exporter@v1.0.0-beta
+        uses: patxibocos/google-photos-exporter@v1.0.0-beta.2
         with:
           target: github
           itemType: photo
