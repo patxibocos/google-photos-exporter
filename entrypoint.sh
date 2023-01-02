@@ -14,7 +14,10 @@ if [ -n "$5" ]; then
   command="$command -oi $5"
 fi
 if [ -n "$6" ]; then
-  command="$command -dpp $5"
+  command="$command -dpp $6"
+fi
+if [ -n "$7" ]; then
+  command="$command -sfn $7"
 fi
 
 echo "Running: $command"
