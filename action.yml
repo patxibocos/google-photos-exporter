@@ -10,7 +10,7 @@ inputs:
   googlePhotosRefreshToken:
     description: 'Google photos refresh token'
     required: true
-  target:
+  exporter:
     description: 'Where to store content (github or dropbox)'
     required: true
   githubAccessToken:
@@ -59,7 +59,7 @@ runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
-    - ${{ inputs.target }}
+    - ${{ inputs.exporter }}
     - ${{ inputs.itemType }}
     - ${{ inputs.maxChunkSize }}
     - ${{ inputs.prefixPath }}

@@ -4,6 +4,16 @@ on:
   schedule:
     - cron: '0 * * * *'
   workflow_dispatch:
+    inputs:
+      exporter:
+        type: choice
+        default: github
+        required: true
+        description: Where to export to
+        options:
+          - github
+          - dropbox
+          - box
 
 jobs:
   export:
@@ -12,7 +22,7 @@ jobs:
       - name: Google Photos exporter (photos)
         uses: patxibocos/google-photos-exporter@v1.0.0-beta.2
         with:
-          target: github
+          exporter: ${{ github.event.inputs.exporter }}
           itemType: photo
           prefixPath: photos
           maxChunkSize: 50
@@ -26,7 +36,7 @@ jobs:
       - name: Google Photos exporter (videos)
         uses: patxibocos/google-photos-exporter@v1.0.0-beta.2
         with:
-          target: github
+          exporter: ${{ github.event.inputs.exporter }}
           itemType: video
           prefixPath: videos
           maxChunkSize: 50

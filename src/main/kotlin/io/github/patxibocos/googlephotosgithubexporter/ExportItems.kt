@@ -14,10 +14,9 @@ class ExportItems(
     private val exportRepository: ExportRepository,
     private val offsetId: String?,
     private val datePathPattern: String,
+    private val syncFileName: String,
     private val logger: Logger = KotlinLogging.logger {}
 ) {
-
-    private val syncFileName = "last-synced-item"
     private fun pathForItem(item: Item): String {
         val date = item.creationTime.atOffset(ZoneOffset.UTC).toLocalDate()
         val datePath = date.format(DateTimeFormatter.ofPattern(datePathPattern))

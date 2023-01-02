@@ -19,8 +19,8 @@ Then, you need to configure auth for GitHub, Dropbox or Box:
 
 ### Usage 📕
 
-The mandatory fields are `target` (**github**, **dropbox** or **box**), `googlePhotosClientId`, `googlePhotosClientSecret` and `googlePhotosRefreshToken`.
-Additionally there are target dependant mandatory fields.
+The mandatory fields are `exporter` (**github**, **dropbox** or **box**), `googlePhotosClientId`, `googlePhotosClientSecret` and `googlePhotosRefreshToken`.
+Additionally there are exporter dependant mandatory fields.
 
 - For **GitHub** => `githubAccessToken`, `githubRepositoryOwner` and `githubRepositoryName`
 - For **Dropbox** => `dropboxAppKey`, `dropboxAppSecret` and `dropboxRefreshToken`
@@ -30,7 +30,7 @@ Additionally there are target dependant mandatory fields.
 - uses: patxibocos/google-photos-exporter@v1.0.0-alpha
   with:
     # Where to upload the photos (must be dropbox, github or box) 
-    target:
+    exporter:
     # (Optional) Item types to filter (must be photo or video)
     itemType:
     # (Optional) Base path to upload the photos
@@ -151,10 +151,11 @@ Options:
     --prefixPath, -pp [] -> Prefix path to use as parent path for content { String }
     --offsetId, -oi -> ID of the item to use as offset (not included) { String }
     --datePathPattern, -dpp [yyyy/MM/dd] -> LocalDate pattern to use for the path of the item { String }
+    --syncFileName, -sfn [last-synced-item] -> Name of the file where last successful item ID will be stored { String }
     --help, -h -> Usage info 
 ```
 
-The single argument that needs to be passed is the target to be used, which must be `dropbox` or `github`
+The single argument that needs to be passed is the exporter to be used, which must be `dropbox` or `github`
 
 The required **environment variables** to be passed are:
 
@@ -162,7 +163,7 @@ The required **environment variables** to be passed are:
 - **GOOGLE_PHOTOS_CLIENT_SECRET**: secret of the OAuth client
 - **GOOGLE_PHOTOS_REFRESH_TOKEN**: a non expiring refresh token for the OAuth client
 
-Depending on the target more environment variables are needed:
+Depending on the exporter more environment variables are needed:
 
 - For **Dropbox**:
     - **DROPBOX_APP_KEY**: app key of the OAuth app

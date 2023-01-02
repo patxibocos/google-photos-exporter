@@ -15,6 +15,7 @@ internal data class AppArgs(
     val prefixPath: String,
     val offsetId: String?,
     val datePathPattern: String,
+    val syncFileName: String,
     val exporter: Subcommands<*>
 )
 
@@ -46,6 +47,11 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         shortName = "dpp",
         description = "LocalDate pattern to use for the path of the item"
     ).default("yyyy/MM/dd")
+    val syncFileName by parser.option(
+        ArgType.String,
+        shortName = "sfn",
+        description = "Name of the file where last successful item ID will be stored"
+    ).default("last-synced-item")
     parser.subcommands(Subcommands.GitHub, Subcommands.Dropbox, Subcommands.Box)
     val parserResult = parser.parse(args)
     val exporter = Subcommands.byName(parserResult.commandName)
@@ -55,6 +61,7 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         prefixPath = prefixPath,
         offsetId = offsetId,
         datePathPattern = datePathPattern,
+        syncFileName = syncFileName,
         exporter = exporter
     )
 }
