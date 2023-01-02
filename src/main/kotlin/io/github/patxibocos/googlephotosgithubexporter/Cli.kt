@@ -52,7 +52,7 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         shortName = "sfn",
         description = "Name of the file where last successful item ID will be stored"
     ).default("last-synced-item")
-    parser.subcommands(Subcommands.GitHub, Subcommands.Dropbox, Subcommands.Box)
+    parser.subcommands(Subcommands.GitHub, Subcommands.Dropbox, Subcommands.Box, Subcommands.OneDrive)
     val parserResult = parser.parse(args)
     val exporter = Subcommands.byName(parserResult.commandName)
     return AppArgs(
@@ -92,6 +92,12 @@ sealed interface Subcommands<T> {
     }
 
     object Box : Subcommand("box", "Box exporter"), Subcommands<Unit> {
+        override fun execute() {}
+
+        override fun data() = Unit
+    }
+
+    object OneDrive : Subcommand("onedrive", "OneDrive exporter"), Subcommands<Unit> {
         override fun execute() {}
 
         override fun data() = Unit

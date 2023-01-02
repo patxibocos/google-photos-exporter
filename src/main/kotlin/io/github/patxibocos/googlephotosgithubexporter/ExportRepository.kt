@@ -41,15 +41,23 @@ interface ExportRepository {
 
                 Subcommands.GitHub -> {
                     val githubAccessToken = System.getenv("GITHUB_ACCESS_TOKEN")
-                    val httpClient = githubHttpClient(githubAccessToken)
                     val githubRepositoryOwner = System.getenv("GITHUB_REPOSITORY_OWNER")
                     val githubRepositoryName = System.getenv("GITHUB_REPOSITORY_NAME")
+                    val httpClient = githubHttpClient(githubAccessToken)
                     GitHubRepository(
                         httpClient,
                         githubRepositoryOwner,
                         githubRepositoryName,
                         prefixPath
                     )
+                }
+
+                Subcommands.OneDrive -> {
+                    val oneDriveClientId = System.getenv("ONEDRIVE_CLIENT_ID")
+                    val oneDriveClientSecret = System.getenv("ONEDRIVE_CLIENT_SECRET")
+                    val oneDriveRefreshToken = System.getenv("ONEDRIVE_REFRESH_TOKEN")
+                    val httpClient = oneDriveHttpClient(oneDriveClientId, oneDriveClientSecret, oneDriveRefreshToken)
+                    OneDriveRepository(httpClient, prefixPath)
                 }
             }.decorate(maxChunkSize)
         }

@@ -70,6 +70,8 @@ class GitHubRepository(
         }
         if (response.status == HttpStatusCode.UnprocessableEntity) {
             logger.warn("File $filePath already exists")
+        } else if (!response.status.isSuccess()) {
+            throw Exception("GitHub upload failed: ${response.body<String>()}")
         }
     }
 }

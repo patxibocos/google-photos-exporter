@@ -11,7 +11,7 @@ inputs:
     description: 'Google photos refresh token'
     required: true
   exporter:
-    description: 'Where to store content (github or dropbox)'
+    description: 'Where to store content (github,  dropbox, box or onedrive)'
     required: true
   githubAccessToken:
     description: 'GitHub access token'
@@ -39,6 +39,15 @@ inputs:
     required: false
   boxUserId:
     description: 'Box user ID'
+    required: false
+  onedriveClientId:
+    description: 'OneDrive client ID'
+    required: false
+  onedriveClientSecret:
+    description: 'OneDrive client secret'
+    required: false
+  onedriveRefreshToken:
+    description: 'OneDrive refresh token'
     required: false
   itemType:
     description: 'Allows exporting just specific item types (photo or video)'
@@ -78,6 +87,9 @@ runs:
     BOX_CLIENT_ID: ${{ inputs.boxClientId }}
     BOX_CLIENT_SECRET: ${{ inputs.boxClientSecret }}
     BOX_USER_ID: ${{ inputs.boxUserId }}
+    ONEDRIVE_CLIENT_ID: ${{ inputs.onedriveClientId }}
+    ONEDRIVE_CLIENT_SECRET: ${{ inputs.onedriveClientSecret }}
+    ONEDRIVE_REFRESH_TOKEN: ${{ inputs.onedriveRefreshToken }}
 branding:
   icon: 'camera'
   color: 'blue'

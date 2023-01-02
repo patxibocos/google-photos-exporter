@@ -2,7 +2,7 @@
 
 ## What is google-photos-exporter ❓
 
-This is an app that fetches every photo from Google Photos library and uploads it to **Dropbox**, **GitHub** or **Box**.
+This is an app that fetches every photo from Google Photos library and uploads it to **Dropbox**, **GitHub**, **Box** or **OneDrive**.
 
 It is shipped as a GitHub action, but it can be easily built and run by yourself.
 
@@ -11,25 +11,27 @@ It is shipped as a GitHub action, but it can be easily built and run by yourself
 First of all, it is required to setup Google Photos auth to get a client id, client secret and a non expiring refresh
 token. Please follow the steps in [Google Photos OAuth](#google-photos-oauth-).
 
-Then, you need to configure auth for GitHub, Dropbox or Box:
+Then, you need to configure auth for GitHub, Dropbox, Box or OneDrive:
 
 - [**GitHub** token](#github-token-): follow the steps to create a personal token
 - [**Dropbox** OAuth](#dropbox-oauth-): follow the steps to get OAuth data
 - [**Box** OAuth](#box-oauth-): follow the steps to get OAuth data
+- [**OneDrive** OAuth](#onedrive-oauth-): follow the steps to get OAuth data
 
 ### Usage 📕
 
-The mandatory fields are `exporter` (**github**, **dropbox** or **box**), `googlePhotosClientId`, `googlePhotosClientSecret` and `googlePhotosRefreshToken`.
+The mandatory fields are `exporter` (**github**, **dropbox**, **box** or **onedrive**), `googlePhotosClientId`, `googlePhotosClientSecret` and `googlePhotosRefreshToken`.
 Additionally there are exporter dependant mandatory fields.
 
 - For **GitHub** => `githubAccessToken`, `githubRepositoryOwner` and `githubRepositoryName`
 - For **Dropbox** => `dropboxAppKey`, `dropboxAppSecret` and `dropboxRefreshToken`
 - For **Box** => `boxClientId`, `boxClientSecret` and `boxUserId`
+- For **OneDrive** => `onedriveClientId`, `onedriveClientSecret` and `onedriveRefreshToken`
 
 ```yaml
-- uses: patxibocos/google-photos-exporter@v1.0.0-alpha
+- uses: patxibocos/google-photos-exporter@v1.0.0-beta
   with:
-    # Where to upload the photos (must be dropbox, github or box) 
+    # Where to upload the photos (must be dropbox, github, box or onedrive) 
     exporter:
     # (Optional) Item types to filter (must be photo or video)
     itemType:
@@ -37,6 +39,10 @@ Additionally there are exporter dependant mandatory fields.
     prefixPath:
     # (Optional) Max file size (in MB) to upload. In case a file is larger, it will be zipped and splitted
     maxChunkSize:
+    # ID of the item to use as offset (not included)
+    offsetId:
+    # LocalDate pattern to use for the path of the item
+    datePatternPath:
     # Google Photos client ID
     googlePhotosClientId:
     # Google Photos client secret
@@ -61,10 +67,12 @@ Additionally there are exporter dependant mandatory fields.
     boxClientSecret:
     # Box user ID
     boxUserId:
-    # ID of the item to use as offset (not included)
-    offsetId:
-    # LocalDate pattern to use for the path of the item
-    datePatternPath:
+    # OneDrive client ID
+    onedriveClientId:
+    # OneDrive client secret
+    onedriveClientSecret:
+    # OneDrive refresh token
+    onedriveRefreshToken:
 ```
 
 ## Auth setup 👮‍♀️
@@ -120,6 +128,12 @@ create one, follow these steps:
 8. Under Authorization -> Click on `Review and Submit`
 9. Authorize the app
 
+### OneDrive OAuth ☁️
+
+1. Follow the steps described in => https://learn.microsoft.com/en-us/graph/auth-v2-user?view=graph-rest-1.0
+    1. When setting the scopes, set `offline_access files.readwrite`. The first one will allow getting new access
+       tokens. The later is required to upload photos/videos and also for reading the sync file.
+
 ## Build on your own 📙
 
 **Java 8** is the single requirement to build and run. It can be easily installed using [SDKMAN!](https://sdkman.io/)
@@ -144,6 +158,7 @@ Subcommands:
     github - GitHub exporter
     dropbox - Dropbox exporter
     box - Box exporter
+    box - OneDrive exporter
 
 Options: 
     --itemTypes, -it [PHOTO, VIDEO] -> Item types to include { Value should be one of [photo, video] }
@@ -177,3 +192,7 @@ Depending on the exporter more environment variables are needed:
     - **BOX_CLIENT_ID**: client ID of the OAuth app
     - **BOX_CLIENT_SECRET**: client secret of the OAuth app
     - **BOX_USER_ID**: user ID of the user that will be used to upload the content
+- For **OneDrive**:
+    - **ONEDRIVE_CLIENT_ID**: client ID of the OAuth app
+    - **ONEDRIVE_CLIENT_SECRET**: client secret of the OAuth app
+    - **ONEDRIVE_REFRESH_TOKEN**: refresh token of the OAuth app

@@ -87,9 +87,11 @@ class GooglePhotosRepository(
                     val items = googlePhotosResponse.page.response.mediaItemsList
                     val newItems = items.takeWhile {
                         it.id != lastItemId
-                    }.filter { mediaItemFilter(itemTypes)(it) }
-                    mediaItems.addAll(newItems)
-                    if (newItems.size != items.size || nextPageToken.isEmpty()) {
+                    }
+                    val newFilteredItems = newItems.filter { mediaItemFilter(itemTypes)(it) }
+                    mediaItems.addAll(newFilteredItems)
+                    logger.info("Collecting items: ${mediaItems.size}")
+                    if (nextPageToken.isEmpty() || newItems.size != items.size) {
                         break
                     }
                 }
