@@ -1,4 +1,4 @@
-package io.github.patxibocos.googlephotosgithubexporter
+package io.github.patxibocos.googlephotosexporter.exporters
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -15,13 +15,13 @@ import mu.KotlinLogging
 import org.slf4j.Logger
 import java.util.*
 
-class GitHubRepository(
+internal class GitHubExporter(
     private val httpClient: HttpClient,
     repoOwner: String,
     repoName: String,
     prefixPath: String,
     private val logger: Logger = KotlinLogging.logger {}
-) : ExportRepository {
+) : Exporter {
 
     @Serializable
     private data class RequestBody(val message: String, val content: String, val sha: String? = null)

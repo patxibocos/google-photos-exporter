@@ -1,4 +1,4 @@
-package io.github.patxibocos.googlephotosgithubexporter
+package io.github.patxibocos.googlephotosexporter.exporters
 
 import com.dropbox.core.v2.DbxClientV2
 import com.dropbox.core.v2.files.DownloadErrorException
@@ -9,11 +9,11 @@ import org.slf4j.Logger
 import java.nio.file.Paths
 import kotlin.io.path.pathString
 
-class DropboxRepository(
+internal class DropboxExporter(
     private val client: DbxClientV2,
     private val prefixPath: String,
     private val logger: Logger = KotlinLogging.logger {}
-) : ExportRepository {
+) : Exporter {
     override suspend fun get(filePath: String): ByteArray? {
         return try {
             client.files().download("/$prefixPath/$filePath").inputStream.use {

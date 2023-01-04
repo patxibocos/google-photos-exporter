@@ -1,4 +1,4 @@
-package io.github.patxibocos.googlephotosgithubexporter
+package io.github.patxibocos.googlephotosexporter.exporters
 
 import com.box.sdk.BoxAPIConnection
 import com.box.sdk.BoxAPIResponseException
@@ -15,12 +15,12 @@ import kotlinx.serialization.json.jsonObject
 import mu.KotlinLogging
 import org.slf4j.Logger
 
-class BoxRepository(
+internal class BoxExporter(
     private val api: BoxAPIConnection,
     private val httpClient: HttpClient,
     private val prefixPath: String,
     private val logger: Logger = KotlinLogging.logger {}
-) : ExportRepository {
+) : Exporter {
     override suspend fun get(filePath: String): ByteArray? {
         val folder = getFolder("$prefixPath/$filePath", false) ?: return null
         val fileName = filePath.split("/").last()

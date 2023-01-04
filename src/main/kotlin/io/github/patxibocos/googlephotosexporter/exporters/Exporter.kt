@@ -1,6 +1,16 @@
-package io.github.patxibocos.googlephotosgithubexporter
+package io.github.patxibocos.googlephotosexporter.exporters
 
-interface ExportRepository {
+import io.github.patxibocos.googlephotosexporter.boxClient
+import io.github.patxibocos.googlephotosexporter.boxHttpClient
+import io.github.patxibocos.googlephotosexporter.cli.ExporterSubcommands
+import io.github.patxibocos.googlephotosexporter.dropboxClient
+import io.github.patxibocos.googlephotosexporter.exporters.decorators.LoggingDecorator
+import io.github.patxibocos.googlephotosexporter.exporters.decorators.RetryDecorator
+import io.github.patxibocos.googlephotosexporter.exporters.decorators.SplitDecorator
+import io.github.patxibocos.googlephotosexporter.githubHttpClient
+import io.github.patxibocos.googlephotosexporter.oneDriveHttpClient
+
+interface Exporter {
     suspend fun get(filePath: String): ByteArray?
     suspend fun upload(
         data: ByteArray,
@@ -9,7 +19,7 @@ interface ExportRepository {
         overrideContent: Boolean = false
     )
 
-    fun decorate(maxChunkSize: Int?): ExportRepository {
+    private fun decorate(maxChunkSize: Int?): Exporter {
         return RetryDecorator(LoggingDecorator(this), 3).let { decorator ->
             if (maxChunkSize != null) {
                 SplitDecorator(decorator, maxChunkSize)
@@ -20,31 +30,31 @@ interface ExportRepository {
     }
 
     companion object {
-        fun forExporter(exporter: Subcommands<*>, prefixPath: String, maxChunkSize: Int?): ExportRepository {
+        internal fun from(exporter: ExporterSubcommands<*>, prefixPath: String, maxChunkSize: Int?): Exporter {
             return when (exporter) {
-                Subcommands.Box -> {
+                ExporterSubcommands.Box -> {
                     val boxClientId = System.getenv("BOX_CLIENT_ID")
                     val boxClientSecret = System.getenv("BOX_CLIENT_SECRET")
                     val boxUserId = System.getenv("BOX_USER_ID")
                     val client = boxClient(boxClientId, boxClientSecret, boxUserId)
                     val httpClient = boxHttpClient()
-                    BoxRepository(client, httpClient, prefixPath)
+                    BoxExporter(client, httpClient, prefixPath)
                 }
 
-                Subcommands.Dropbox -> {
+                ExporterSubcommands.Dropbox -> {
                     val dropboxRefreshToken = System.getenv("DROPBOX_REFRESH_TOKEN")
                     val dropboxAppKey = System.getenv("DROPBOX_APP_KEY")
                     val dropboxAppSecret = System.getenv("DROPBOX_APP_SECRET")
                     val dropboxClient = dropboxClient(dropboxAppKey, dropboxAppSecret, dropboxRefreshToken)
-                    DropboxRepository(dropboxClient, prefixPath)
+                    DropboxExporter(dropboxClient, prefixPath)
                 }
 
-                Subcommands.GitHub -> {
+                ExporterSubcommands.GitHub -> {
                     val githubAccessToken = System.getenv("GITHUB_ACCESS_TOKEN")
                     val githubRepositoryOwner = System.getenv("GITHUB_REPOSITORY_OWNER")
                     val githubRepositoryName = System.getenv("GITHUB_REPOSITORY_NAME")
                     val httpClient = githubHttpClient(githubAccessToken)
-                    GitHubRepository(
+                    GitHubExporter(
                         httpClient,
                         githubRepositoryOwner,
                         githubRepositoryName,
@@ -52,12 +62,12 @@ interface ExportRepository {
                     )
                 }
 
-                Subcommands.OneDrive -> {
+                ExporterSubcommands.OneDrive -> {
                     val oneDriveClientId = System.getenv("ONEDRIVE_CLIENT_ID")
                     val oneDriveClientSecret = System.getenv("ONEDRIVE_CLIENT_SECRET")
                     val oneDriveRefreshToken = System.getenv("ONEDRIVE_REFRESH_TOKEN")
                     val httpClient = oneDriveHttpClient(oneDriveClientId, oneDriveClientSecret, oneDriveRefreshToken)
-                    OneDriveRepository(httpClient, prefixPath)
+                    OneDriveExporter(httpClient, prefixPath)
                 }
             }.decorate(maxChunkSize)
         }

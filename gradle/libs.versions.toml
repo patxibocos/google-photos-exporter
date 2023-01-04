@@ -9,6 +9,7 @@ dropbox = "com.dropbox.core:dropbox-core-sdk:5.4.4"
 google-api-client = "com.google.api-client:google-api-client:1.35.1"
 google-oauth2-http = "com.google.auth:google-auth-library-oauth2-http:1.13.0"
 google-photos-library-client = "com.google.photos.library:google-photos-library-client:1.7.2"
+junit = "org.junit.jupiter:junit-jupiter:5.7.1"
 kotlin-cli = "org.jetbrains.kotlinx:kotlinx-cli-jvm:0.3.5"
 kotlin-coroutines-core = "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
 kotlin-logging = "io.github.microutils:kotlin-logging-jvm:3.0.0"
@@ -22,4 +23,5 @@ ktor-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", 
 log4j-api-kotlin = "org.apache.logging.log4j:log4j-api-kotlin:1.2.0"
 log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
 log4j-slf4j2-impl = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version.ref = "log4j" }
+mockk = "io.mockk:mockk:1.13.3"
 zip4j = "net.lingala.zip4j:zip4j:2.11.2"

@@ -1,5 +1,6 @@
-package io.github.patxibocos.googlephotosgithubexporter
+package io.github.patxibocos.googlephotosexporter
 
+import io.github.patxibocos.googlephotosexporter.exporters.Exporter
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.lastOrNull
 import kotlinx.coroutines.flow.onEach
@@ -11,7 +12,7 @@ import java.time.format.DateTimeFormatter
 
 class ExportItems(
     private val googlePhotosRepository: GooglePhotosRepository,
-    private val exportRepository: ExportRepository,
+    private val exporter: Exporter,
     private val offsetId: String?,
     private val datePathPattern: String,
     private val syncFileName: String,
@@ -27,7 +28,7 @@ class ExportItems(
 
     suspend operator fun invoke(itemTypes: List<ItemType>): Int {
         var exitCode = 0
-        val lastItemId = offsetId?.trim() ?: exportRepository.get(syncFileName)?.toString(Charsets.UTF_8)?.trim()
+        val lastItemId = offsetId?.trim() ?: exporter.get(syncFileName)?.toString(Charsets.UTF_8)?.trim()
         googlePhotosRepository
             .download(itemTypes, lastItemId)
             .onEmpty {
@@ -38,7 +39,7 @@ class ExportItems(
                 exitCode = 1
             }
             .onEach { item ->
-                exportRepository.upload(
+                exporter.upload(
                     item.bytes,
                     item.name,
                     pathForItem(item)
@@ -49,7 +50,7 @@ class ExportItems(
                 exitCode = 2
             }
             .lastOrNull()?.let {
-                exportRepository.upload(
+                exporter.upload(
                     it.id.toByteArray(),
                     syncFileName,
                     syncFileName,

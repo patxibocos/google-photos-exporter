@@ -1,5 +1,7 @@
-package io.github.patxibocos.googlephotosgithubexporter
+package io.github.patxibocos.googlephotosexporter
 
+import io.github.patxibocos.googlephotosexporter.cli.getAppArgs
+import io.github.patxibocos.googlephotosexporter.exporters.Exporter
 import kotlinx.coroutines.runBlocking
 import kotlin.system.exitProcess
 
@@ -10,10 +12,10 @@ fun main(args: Array<String>) {
     val googlePhotosClient = googlePhotosHttpClient()
     val photosClient = photosLibraryClient()
 
-    val exportRepository = ExportRepository.forExporter(appArgs.exporter, prefixPath, maxChunkSize)
+    val exporter = Exporter.from(appArgs.exporter, prefixPath, maxChunkSize)
     val googlePhotosRepository = GooglePhotosRepository(photosClient, googlePhotosClient)
 
-    val exportItems = ExportItems(googlePhotosRepository, exportRepository, offsetId, datePathPattern, syncFileName)
+    val exportItems = ExportItems(googlePhotosRepository, exporter, offsetId, datePathPattern, syncFileName)
     runBlocking {
         val exitCode = exportItems(itemTypes)
         exitProcess(exitCode)

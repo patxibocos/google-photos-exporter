@@ -1,4 +1,4 @@
-package io.github.patxibocos.googlephotosgithubexporter
+package io.github.patxibocos.googlephotosexporter
 
 import com.box.sdk.BoxAPIConnection
 import com.box.sdk.BoxCCGAPIConnection

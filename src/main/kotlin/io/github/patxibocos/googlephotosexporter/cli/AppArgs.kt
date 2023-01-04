@@ -1,11 +1,9 @@
-@file:OptIn(ExperimentalCli::class)
+package io.github.patxibocos.googlephotosexporter.cli
 
-package io.github.patxibocos.googlephotosgithubexporter
-
+import io.github.patxibocos.googlephotosexporter.ItemType
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import kotlinx.cli.ExperimentalCli
-import kotlinx.cli.Subcommand
 import kotlinx.cli.default
 import kotlinx.cli.multiple
 
@@ -16,17 +14,17 @@ internal data class AppArgs(
     val offsetId: String?,
     val datePathPattern: String,
     val syncFileName: String,
-    val exporter: Subcommands<*>
+    val exporter: ExporterSubcommands<*>
 )
 
+@OptIn(ExperimentalCli::class)
 internal fun getAppArgs(args: Array<String>): AppArgs {
     val parser = ArgParser("google-photos-exporter")
     val itemTypes by parser.option(
         ArgType.Choice<ItemType>(),
         shortName = "it",
         description = "Item types to include"
-    )
-        .multiple().default(ItemType.values().toList())
+    ).multiple().default(ItemType.values().toList())
     val maxChunkSize by parser.option(
         ArgType.Int,
         shortName = "mcs",
@@ -52,9 +50,14 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         shortName = "sfn",
         description = "Name of the file where last successful item ID will be stored"
     ).default("last-synced-item")
-    parser.subcommands(Subcommands.GitHub, Subcommands.Dropbox, Subcommands.Box, Subcommands.OneDrive)
+    parser.subcommands(
+        ExporterSubcommands.GitHub,
+        ExporterSubcommands.Dropbox,
+        ExporterSubcommands.Box,
+        ExporterSubcommands.OneDrive
+    )
     val parserResult = parser.parse(args)
-    val exporter = Subcommands.byName(parserResult.commandName)
+    val exporter = ExporterSubcommands.byName(parserResult.commandName)
     return AppArgs(
         itemTypes = itemTypes,
         maxChunkSize = maxChunkSize,
@@ -64,42 +67,4 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         syncFileName = syncFileName,
         exporter = exporter
     )
-}
-
-sealed interface Subcommands<T> {
-    fun data(): T
-    val name: String
-
-    companion object {
-        fun byName(name: String): Subcommands<*> {
-            return Subcommands::class.sealedSubclasses
-                .firstOrNull { it.objectInstance?.name == name }
-                ?.objectInstance
-                ?: throw IllegalArgumentException("Unknown subcommand: $name")
-        }
-    }
-
-    object GitHub : Subcommand("github", "GitHub exporter"), Subcommands<Unit> {
-        override fun execute() {}
-
-        override fun data() = Unit
-    }
-
-    object Dropbox : Subcommand("dropbox", "Dropbox exporter"), Subcommands<Unit> {
-        override fun execute() {}
-
-        override fun data() = Unit
-    }
-
-    object Box : Subcommand("box", "Box exporter"), Subcommands<Unit> {
-        override fun execute() {}
-
-        override fun data() = Unit
-    }
-
-    object OneDrive : Subcommand("onedrive", "OneDrive exporter"), Subcommands<Unit> {
-        override fun execute() {}
-
-        override fun data() = Unit
-    }
 }

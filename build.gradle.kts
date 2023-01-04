@@ -35,6 +35,9 @@ dependencies {
     implementation(libs.log4j.core)
     implementation(libs.log4j.slf4j2.impl)
     implementation(libs.zip4j)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
 }
 
 tasks.test {
@@ -60,7 +63,7 @@ spotless {
 
 tasks.withType<Jar> {
     manifest {
-        attributes["Main-Class"] = "io.github.patxibocos.googlephotosgithubexporter.MainKt"
+        attributes["Main-Class"] = "io.github.patxibocos.googlephotosexporter.MainKt"
         archiveFileName.set("${project.name}.jar")
     }
 }
@@ -74,4 +77,8 @@ tasks.withType<ShadowJar> {
         exclude(dependency(libs.google.photos.library.client.get()))
         exclude(dependency(libs.kotlin.logging.get()))
     }
+}
+
+tasks.test {
+    useJUnitPlatform()
 }

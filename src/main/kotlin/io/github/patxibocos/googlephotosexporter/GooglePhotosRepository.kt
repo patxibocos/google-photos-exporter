@@ -1,4 +1,4 @@
-package io.github.patxibocos.googlephotosgithubexporter
+package io.github.patxibocos.googlephotosexporter
 
 import com.google.photos.library.v1.PhotosLibraryClient
 import com.google.photos.library.v1.internal.InternalPhotosLibraryClient
