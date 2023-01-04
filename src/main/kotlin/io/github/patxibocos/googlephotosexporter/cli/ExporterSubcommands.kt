@@ -11,10 +11,13 @@ internal sealed interface ExporterSubcommands<T> {
 
     companion object {
         fun byName(name: String): ExporterSubcommands<*> {
-            return ExporterSubcommands::class.sealedSubclasses
-                .firstOrNull { it.objectInstance?.name == name }
-                ?.objectInstance
-                ?: throw IllegalArgumentException("Unknown subcommand: $name")
+            return when (name) {
+                GitHub.name -> GitHub
+                Dropbox.name -> Dropbox
+                Box.name -> Box
+                OneDrive.name -> OneDrive
+                else -> throw IllegalArgumentException("Unknown exporter subcommand: $name")
+            }
         }
     }
 

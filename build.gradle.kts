@@ -2,9 +2,9 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     idea
-    kotlin("jvm") version "1.7.21"
-    kotlin("plugin.serialization") version "1.7.21"
-    id("com.diffplug.spotless") version "6.12.0"
+    kotlin("jvm") version "1.8.0"
+    kotlin("plugin.serialization") version "1.8.0"
+    id("com.diffplug.spotless") version "6.12.1"
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
@@ -18,13 +18,9 @@ repositories {
 dependencies {
     implementation(libs.box)
     implementation(libs.dropbox)
-    implementation(libs.google.api.client)
-    implementation(libs.google.oauth2.http)
-    implementation(libs.google.photos.library.client)
     implementation(libs.kotlin.cli)
     implementation(libs.kotlin.coroutines.core)
     implementation(libs.kotlin.logging)
-    implementation(libs.kotlin.reflect)
     implementation(libs.kotlin.serialization.json)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.client.auth)
@@ -71,11 +67,8 @@ tasks.withType<Jar> {
 tasks.withType<ShadowJar> {
     mergeServiceFiles()
     minimize {
-        exclude(dependency(libs.kotlin.reflect.get()))
         exclude(dependency(libs.log4j.slf4j2.impl.get()))
         exclude(dependency(libs.log4j.core.get()))
-        exclude(dependency(libs.google.photos.library.client.get()))
-        exclude(dependency(libs.kotlin.logging.get()))
     }
 }
 

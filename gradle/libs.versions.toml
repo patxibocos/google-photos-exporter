@@ -6,14 +6,10 @@ log4j = "2.19.0"
 [libraries]
 box = "com.box:box-java-sdk:3.8.1"
 dropbox = "com.dropbox.core:dropbox-core-sdk:5.4.4"
-google-api-client = "com.google.api-client:google-api-client:1.35.1"
-google-oauth2-http = "com.google.auth:google-auth-library-oauth2-http:1.13.0"
-google-photos-library-client = "com.google.photos.library:google-photos-library-client:1.7.2"
 junit = "org.junit.jupiter:junit-jupiter:5.7.1"
 kotlin-cli = "org.jetbrains.kotlinx:kotlinx-cli-jvm:0.3.5"
 kotlin-coroutines-core = "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
 kotlin-logging = "io.github.microutils:kotlin-logging-jvm:3.0.0"
-kotlin-reflect = "org.jetbrains.kotlin:kotlin-reflect:1.7.21"
 kotlin-serialization-json = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0"
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
