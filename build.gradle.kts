@@ -16,8 +16,6 @@ repositories {
 }
 
 dependencies {
-    implementation(libs.box)
-    implementation(libs.dropbox)
     implementation(libs.kotlin.cli)
     implementation(libs.kotlin.coroutines.core)
     implementation(libs.kotlin.logging)
@@ -32,12 +30,9 @@ dependencies {
     implementation(libs.log4j.slf4j2.impl)
     implementation(libs.zip4j)
 
-    testImplementation(libs.junit)
+    testImplementation(kotlin("test"))
+    testImplementation(libs.kotlin.coroutines.test)
     testImplementation(libs.mockk)
-}
-
-tasks.test {
-    useJUnitPlatform()
 }
 
 kotlin {

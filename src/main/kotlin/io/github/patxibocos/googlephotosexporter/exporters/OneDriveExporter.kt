@@ -21,7 +21,7 @@ internal class OneDriveExporter(
     private val logger: Logger = KotlinLogging.logger {}
 ) : Exporter {
     // https://learn.microsoft.com/en-us/graph/api/driveitem-put-content
-    private val maxUploadSize = 4 * 1024 * 1024 // 4MB
+    private val maxUploadSize = 4 * 1024 * 1024 // 4 MB
 
     @Serializable
     private data class ResponseBody(@SerialName("@microsoft.graph.downloadUrl") val downloadUrl: String)

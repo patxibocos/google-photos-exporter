@@ -1,9 +1,8 @@
 package io.github.patxibocos.googlephotosexporter.exporters
 
-import io.github.patxibocos.googlephotosexporter.boxClient
 import io.github.patxibocos.googlephotosexporter.boxHttpClient
 import io.github.patxibocos.googlephotosexporter.cli.ExporterSubcommands
-import io.github.patxibocos.googlephotosexporter.dropboxClient
+import io.github.patxibocos.googlephotosexporter.dropboxHttpClient
 import io.github.patxibocos.googlephotosexporter.exporters.decorators.LoggingDecorator
 import io.github.patxibocos.googlephotosexporter.exporters.decorators.RetryDecorator
 import io.github.patxibocos.googlephotosexporter.exporters.decorators.SplitDecorator
@@ -16,7 +15,7 @@ interface Exporter {
         data: ByteArray,
         name: String,
         filePath: String,
-        overrideContent: Boolean = false
+        overrideContent: Boolean
     )
 
     private fun decorate(maxChunkSize: Int?): Exporter {
@@ -36,16 +35,17 @@ interface Exporter {
                     val boxClientId = System.getenv("BOX_CLIENT_ID")
                     val boxClientSecret = System.getenv("BOX_CLIENT_SECRET")
                     val boxUserId = System.getenv("BOX_USER_ID")
-                    val client = boxClient(boxClientId, boxClientSecret, boxUserId)
-                    val httpClient = boxHttpClient()
-                    BoxExporter(client, httpClient, prefixPath)
+//                    val client = boxClient(boxClientId, boxClientSecret, boxUserId)
+                    val httpClient = boxHttpClient(boxClientId, boxClientSecret, boxUserId)
+//                    BoxExporter(client, httpClient, prefixPath)
+                    BoxExporter(httpClient, prefixPath)
                 }
 
                 ExporterSubcommands.Dropbox -> {
                     val dropboxRefreshToken = System.getenv("DROPBOX_REFRESH_TOKEN")
                     val dropboxAppKey = System.getenv("DROPBOX_APP_KEY")
                     val dropboxAppSecret = System.getenv("DROPBOX_APP_SECRET")
-                    val dropboxClient = dropboxClient(dropboxAppKey, dropboxAppSecret, dropboxRefreshToken)
+                    val dropboxClient = dropboxHttpClient(dropboxAppKey, dropboxAppSecret, dropboxRefreshToken)
                     DropboxExporter(dropboxClient, prefixPath)
                 }
 

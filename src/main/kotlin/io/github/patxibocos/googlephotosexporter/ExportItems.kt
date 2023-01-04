@@ -42,7 +42,8 @@ class ExportItems(
                 exporter.upload(
                     item.bytes,
                     item.name,
-                    pathForItem(item)
+                    pathForItem(item),
+                    false
                 )
             }
             .catch {

@@ -1,10 +1,5 @@
 package io.github.patxibocos.googlephotosexporter
 
-import com.box.sdk.BoxAPIConnection
-import com.box.sdk.BoxCCGAPIConnection
-import com.dropbox.core.DbxRequestConfig
-import com.dropbox.core.oauth.DbxCredential
-import com.dropbox.core.v2.DbxClientV2
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
@@ -27,10 +22,12 @@ private fun httpClientForOAuth(
     refreshUrl: String,
     clientId: String,
     clientSecret: String,
-    refreshToken: String
+    grantType: String,
+    refreshToken: String?,
+    vararg extraParams: Pair<String, String>
 ): HttpClient {
     val bearerTokenStorage = mutableListOf<BearerTokens>()
-    return HttpClient(CIO) {
+    val client = HttpClient(CIO) {
         install(ContentNegotiation) {
             json(
                 Json {
@@ -38,22 +35,29 @@ private fun httpClientForOAuth(
                 }
             )
         }
+    }
+    return client.config {
         install(Auth) {
             bearer {
                 loadTokens {
-                    BearerTokens("", refreshToken)
+                    // Sending this dummy value for Dropbox (because when sending an empty value the API doesn't return a 401)
+                    BearerTokens("sl.", refreshToken ?: "")
                 }
                 refreshTokens {
-                    val refreshTokenInfo: TokenInfo = client.submitForm(
+                    val response = client.submitForm(
                         url = refreshUrl,
                         formParameters = Parameters.build {
-                            append("grant_type", "refresh_token")
+                            append("grant_type", grantType)
                             append("client_id", clientId)
                             append("client_secret", clientSecret)
-                            append("refresh_token", oldTokens?.refreshToken ?: "")
+                            refreshToken?.let { append("refresh_token", it) }
+                            extraParams.forEach { (key, value) ->
+                                append(key, value)
+                            }
                         }
-                    ) { markAsRefreshTokenRequest() }.body()
-                    bearerTokenStorage.add(BearerTokens(refreshTokenInfo.accessToken, oldTokens?.refreshToken!!))
+                    )
+                    val refreshTokenInfo = response.body<TokenInfo>()
+                    bearerTokenStorage.add(BearerTokens(refreshTokenInfo.accessToken, refreshToken ?: ""))
                     bearerTokenStorage.last()
                 }
             }
@@ -65,7 +69,13 @@ private fun httpClientForOAuth(
 }
 
 internal fun googlePhotosHttpClient(clientId: String, clientSecret: String, refreshToken: String): HttpClient =
-    httpClientForOAuth("https://accounts.google.com/o/oauth2/token", clientId, clientSecret, refreshToken)
+    httpClientForOAuth(
+        "https://accounts.google.com/o/oauth2/token",
+        clientId,
+        clientSecret,
+        "refresh_token",
+        refreshToken
+    )
 
 internal fun githubHttpClient(accessToken: String): HttpClient {
     return HttpClient(CIO) {
@@ -89,28 +99,25 @@ internal fun githubHttpClient(accessToken: String): HttpClient {
     }
 }
 
-internal fun dropboxClient(appKey: String, appSecret: String, refreshToken: String): DbxClientV2 {
-    val config = DbxRequestConfig.newBuilder("google-photos-exporter").build()
-    val credentials = DbxCredential(
-        "",
-        Long.MAX_VALUE,
-        refreshToken,
-        appKey,
-        appSecret
+internal fun dropboxHttpClient(appKey: String, appSecret: String, refreshToken: String): HttpClient =
+    httpClientForOAuth("https://api.dropbox.com/oauth2/token", appKey, appSecret, "refresh_token", refreshToken)
+
+internal fun boxHttpClient(boxClientId: String, boxClientSecret: String, boxUserId: String): HttpClient =
+    httpClientForOAuth(
+        "https://api.box.com/oauth2/token",
+        boxClientId,
+        boxClientSecret,
+        "client_credentials",
+        null,
+        "box_subject_type" to "user",
+        "box_subject_id" to boxUserId
     )
-    return DbxClientV2(config, credentials).apply {
-        // Forcing refresh as we are initially passing an empty token
-        this.refreshAccessToken()
-    }
-}
-
-internal fun boxClient(boxClientId: String, boxClientSecret: String, boxUserId: String): BoxAPIConnection {
-    return BoxCCGAPIConnection.userConnection(boxClientId, boxClientSecret, boxUserId)
-}
-
-internal fun boxHttpClient(): HttpClient {
-    return HttpClient(CIO)
-}
 
 internal fun oneDriveHttpClient(clientId: String, clientSecret: String, refreshToken: String): HttpClient =
-    httpClientForOAuth("https://login.live.com/oauth20_token.srf", clientId, clientSecret, refreshToken)
+    httpClientForOAuth(
+        "https://login.live.com/oauth20_token.srf",
+        clientId,
+        clientSecret,
+        "refresh_token",
+        refreshToken
+    )
