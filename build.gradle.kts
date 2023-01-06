@@ -2,10 +2,10 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     idea
-    kotlin("jvm") version "1.8.0"
-    kotlin("plugin.serialization") version "1.8.0"
-    id("com.diffplug.spotless") version "6.12.1"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.spotless)
+    alias(libs.plugins.shadow)
 }
 
 group = "io.github.patxibocos"
@@ -30,7 +30,7 @@ dependencies {
     implementation(libs.log4j.slf4j2.impl)
     implementation(libs.zip4j)
 
-    testImplementation(kotlin("test"))
+    testImplementation(libs.kotlin.test)
     testImplementation(libs.kotlin.coroutines.test)
     testImplementation(libs.mockk)
 }
@@ -43,12 +43,12 @@ spotless {
     kotlin {
         target("**/*.kt")
         targetExclude("$buildDir/**/*.kt", "bin/**/*.kt")
-        ktlint("0.47.1")
+        ktlint(libs.versions.ktlint.get())
     }
 
     kotlinGradle {
         target("*.gradle.kts")
-        ktlint("0.47.1")
+        ktlint(libs.versions.ktlint.get())
     }
 }
 
@@ -60,7 +60,6 @@ tasks.withType<Jar> {
 }
 
 tasks.withType<ShadowJar> {
-    mergeServiceFiles()
     minimize {
         exclude(dependency(libs.log4j.slf4j2.impl.get()))
         exclude(dependency(libs.log4j.core.get()))

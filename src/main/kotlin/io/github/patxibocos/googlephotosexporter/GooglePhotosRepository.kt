@@ -30,7 +30,7 @@ data class MediaItem(
     val id: String,
     val baseUrl: String,
     val mediaMetadata: MediaMetadata,
-    val filename: String
+    val filename: String,
 )
 
 @Serializable
@@ -56,7 +56,7 @@ private fun MediaItem.hasVideoNotReady(): Boolean =
 
 class GooglePhotosRepository(
     private val httpClient: HttpClient,
-    private val logger: Logger = KotlinLogging.logger {}
+    private val logger: Logger = KotlinLogging.logger {},
 ) {
 
     private suspend fun buildItem(mediaItem: MediaItem): Item {
@@ -80,7 +80,7 @@ class GooglePhotosRepository(
     }
 
     private suspend fun fetchItems(
-        nextPageToken: String
+        nextPageToken: String,
     ): ListMediaItemsResponse {
         val response = httpClient.get("$BASE_PATH/v1/mediaItems?pageSize=100&pageToken=$nextPageToken")
         return response.body()

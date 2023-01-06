@@ -24,7 +24,7 @@ private fun httpClientForOAuth(
     clientSecret: String,
     grantType: String,
     refreshToken: String?,
-    vararg extraParams: Pair<String, String>
+    vararg extraParams: Pair<String, String>,
 ): HttpClient {
     val bearerTokenStorage = mutableListOf<BearerTokens>()
     val client = HttpClient(CIO) {
@@ -32,7 +32,7 @@ private fun httpClientForOAuth(
             json(
                 Json {
                     ignoreUnknownKeys = true
-                }
+                },
             )
         }
     }
@@ -54,7 +54,7 @@ private fun httpClientForOAuth(
                             extraParams.forEach { (key, value) ->
                                 append(key, value)
                             }
-                        }
+                        },
                     )
                     val refreshTokenInfo = response.body<TokenInfo>()
                     bearerTokenStorage.add(BearerTokens(refreshTokenInfo.accessToken, refreshToken ?: ""))
@@ -74,7 +74,7 @@ internal fun googlePhotosHttpClient(clientId: String, clientSecret: String, refr
         clientId,
         clientSecret,
         "refresh_token",
-        refreshToken
+        refreshToken,
     )
 
 internal fun githubHttpClient(accessToken: String): HttpClient {
@@ -90,7 +90,7 @@ internal fun githubHttpClient(accessToken: String): HttpClient {
             json(
                 Json {
                     ignoreUnknownKeys = true
-                }
+                },
             )
         }
         install(HttpTimeout) {
@@ -110,7 +110,7 @@ internal fun boxHttpClient(boxClientId: String, boxClientSecret: String, boxUser
         "client_credentials",
         null,
         "box_subject_type" to "user",
-        "box_subject_id" to boxUserId
+        "box_subject_id" to boxUserId,
     )
 
 internal fun oneDriveHttpClient(clientId: String, clientSecret: String, refreshToken: String): HttpClient =
@@ -119,5 +119,5 @@ internal fun oneDriveHttpClient(clientId: String, clientSecret: String, refreshT
         clientId,
         clientSecret,
         "refresh_token",
-        refreshToken
+        refreshToken,
     )

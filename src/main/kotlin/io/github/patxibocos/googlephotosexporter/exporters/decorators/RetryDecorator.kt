@@ -7,7 +7,7 @@ import org.slf4j.Logger
 internal class RetryDecorator(
     private val repository: Exporter,
     private val maxRetries: Int,
-    private val logger: Logger = KotlinLogging.logger {}
+    private val logger: Logger = KotlinLogging.logger {},
 ) : Exporter by repository {
     override suspend fun upload(data: ByteArray, name: String, filePath: String, overrideContent: Boolean) {
         suspend fun uploadWithRetry(
@@ -15,7 +15,7 @@ internal class RetryDecorator(
             name: String,
             filePath: String,
             overrideContent: Boolean,
-            retry: Int = 0
+            retry: Int = 0,
         ) {
             try {
                 repository.upload(data, name, filePath, overrideContent)

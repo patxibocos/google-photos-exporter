@@ -14,7 +14,7 @@ internal data class AppArgs(
     val offsetId: String?,
     val datePathPattern: String,
     val syncFileName: String,
-    val exporter: ExporterSubcommands<*>
+    val exporter: ExporterSubcommands<*>,
 )
 
 @OptIn(ExperimentalCli::class)
@@ -23,38 +23,38 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
     val itemTypes by parser.option(
         ArgType.Choice<ItemType>(),
         shortName = "it",
-        description = "Item types to include"
+        description = "Item types to include",
     ).multiple().default(ItemType.values().toList())
     val maxChunkSize by parser.option(
         ArgType.Int,
         shortName = "mcs",
-        description = "Max chunk size when uploading to GitHub"
+        description = "Max chunk size when uploading to GitHub",
     )
     val prefixPath by parser.option(
         ArgType.String,
         shortName = "pp",
-        description = "Prefix path to use as parent path for content"
+        description = "Prefix path to use as parent path for content",
     ).default("")
     val offsetId by parser.option(
         ArgType.String,
         shortName = "oi",
-        description = "ID of the item to use as offset (not included)"
+        description = "ID of the item to use as offset (not included)",
     )
     val datePathPattern by parser.option(
         ArgType.String,
         shortName = "dpp",
-        description = "LocalDate pattern to use for the path of the item"
+        description = "LocalDate pattern to use for the path of the item",
     ).default("yyyy/MM/dd")
     val syncFileName by parser.option(
         ArgType.String,
         shortName = "sfn",
-        description = "Name of the file where last successful item ID will be stored"
+        description = "Name of the file where last successful item ID will be stored",
     ).default("last-synced-item")
     parser.subcommands(
         ExporterSubcommands.GitHub,
         ExporterSubcommands.Dropbox,
         ExporterSubcommands.Box,
-        ExporterSubcommands.OneDrive
+        ExporterSubcommands.OneDrive,
     )
     val parserResult = parser.parse(args)
     val exporter = ExporterSubcommands.byName(parserResult.commandName)
@@ -65,6 +65,6 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         offsetId = offsetId,
         datePathPattern = datePathPattern,
         syncFileName = syncFileName,
-        exporter = exporter
+        exporter = exporter,
     )
 }

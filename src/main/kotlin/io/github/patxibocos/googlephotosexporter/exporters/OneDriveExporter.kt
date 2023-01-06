@@ -18,7 +18,7 @@ import org.slf4j.Logger
 internal class OneDriveExporter(
     private val httpClient: HttpClient,
     prefixPath: String,
-    private val logger: Logger = KotlinLogging.logger {}
+    private val logger: Logger = KotlinLogging.logger {},
 ) : Exporter {
     // https://learn.microsoft.com/en-us/graph/api/driveitem-put-content
     private val maxUploadSize = 4 * 1024 * 1024 // 4 MB
@@ -28,12 +28,12 @@ internal class OneDriveExporter(
 
     @Serializable
     private data class UploadSessionRequestBody(
-        val item: Item
+        val item: Item,
     ) {
         @Serializable
-        internal data class Item(
+        data class Item(
             @SerialName("@microsoft.graph.conflictBehavior") val conflictBehavior: String,
-            @SerialName("fileSize") val fileSize: Int
+            @SerialName("fileSize") val fileSize: Int,
         )
     }
 

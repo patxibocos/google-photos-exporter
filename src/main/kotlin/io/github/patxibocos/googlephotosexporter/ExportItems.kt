@@ -16,7 +16,7 @@ class ExportItems(
     private val offsetId: String?,
     private val datePathPattern: String,
     private val syncFileName: String,
-    private val logger: Logger = KotlinLogging.logger {}
+    private val logger: Logger = KotlinLogging.logger {},
 ) {
     private fun pathForItem(item: Item): String {
         val date = item.creationTime.atOffset(ZoneOffset.UTC).toLocalDate()
@@ -43,7 +43,7 @@ class ExportItems(
                     item.bytes,
                     item.name,
                     pathForItem(item),
-                    false
+                    false,
                 )
             }
             .catch {
@@ -51,14 +51,14 @@ class ExportItems(
                 exitCode = 2
             }
             .lastOrNull()?.let {
-                exporter.upload(
-                    it.id.toByteArray(),
-                    syncFileName,
-                    syncFileName,
-                    true
-                )
-                logger.info("Last uploaded item: ${it.name}")
-            }
+            exporter.upload(
+                it.id.toByteArray(),
+                syncFileName,
+                syncFileName,
+                true,
+            )
+            logger.info("Last uploaded item: ${it.name}")
+        }
         return exitCode
     }
 }

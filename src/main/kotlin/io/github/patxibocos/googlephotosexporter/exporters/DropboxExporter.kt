@@ -18,7 +18,7 @@ import org.slf4j.Logger
 internal class DropboxExporter(
     private val httpClient: HttpClient,
     private val prefixPath: String,
-    private val logger: Logger = KotlinLogging.logger {}
+    private val logger: Logger = KotlinLogging.logger {},
 ) : Exporter {
     private val basePath = "https://content.dropboxapi.com/2"
 
@@ -73,7 +73,7 @@ internal class DropboxExporter(
                         contentType(ContentType.Application.OctetStream)
                         header(
                             "Dropbox-API-Arg",
-                            """{"close":false,"cursor":{"offset":$offset,"session_id":"$sessionId"}}"""
+                            """{"close":false,"cursor":{"offset":$offset,"session_id":"$sessionId"}}""",
                         )
                         setBody(chunk)
                     }
@@ -86,7 +86,7 @@ internal class DropboxExporter(
                     contentType(ContentType.Application.OctetStream)
                     header(
                         "Dropbox-API-Arg",
-                        """{"cursor":{"offset":$finalOffset,"session_id":"$sessionId"},"commit":{"path":"/$prefixPath/$filePath","strict_conflict":${!overrideContent}}}"""
+                        """{"cursor":{"offset":$finalOffset,"session_id":"$sessionId"},"commit":{"path":"/$prefixPath/$filePath","strict_conflict":${!overrideContent}}}""",
                     )
                 }
             }

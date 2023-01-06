@@ -20,7 +20,7 @@ internal class GitHubExporter(
     repoOwner: String,
     repoName: String,
     prefixPath: String,
-    private val logger: Logger = KotlinLogging.logger {}
+    private val logger: Logger = KotlinLogging.logger {},
 ) : Exporter {
 
     @Serializable
@@ -48,7 +48,7 @@ internal class GitHubExporter(
         data: ByteArray,
         name: String,
         filePath: String,
-        overrideContent: Boolean
+        overrideContent: Boolean,
     ) {
         val commitMessage = "Upload $name"
         val sha: String? = if (overrideContent) {

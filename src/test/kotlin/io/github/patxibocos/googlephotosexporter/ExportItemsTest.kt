@@ -5,26 +5,32 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.coVerifyOrder
 import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import io.mockk.mockk
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.extension.ExtendWith
 import java.time.Instant
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @ExtendWith(MockKExtension::class)
 class ExportItemsTest {
 
+    @MockK
+    lateinit var exporter: Exporter
+
+    @MockK
+    lateinit var googlePhotosRepository: GooglePhotosRepository
+
     @Test
     fun `when no items on photos repository then nothing is uploaded`() = runTest {
-        val googlePhotosRepository: GooglePhotosRepository = mockk {
-            every { download(any()) } returns emptyFlow()
-        }
-        val exporter: Exporter = mockk {
-            coEvery { this@mockk.get(any()) } returns null
-        }
+        every { googlePhotosRepository.download(any()) } returns emptyFlow()
+        coEvery { exporter.get(any()) } returns null
         val exportItems = ExportItems(googlePhotosRepository, exporter, null, "yyyy/MM/dd", "last-synced-item")
 
         exportItems(ItemType.values().toList())
@@ -35,16 +41,12 @@ class ExportItemsTest {
     @Test
     fun `when many items on photos repository then every item is uploaded in order and last synced item is set`() =
         runTest {
-            val googlePhotosRepository: GooglePhotosRepository = mockk {
-                every { download(any()) } returns flowOf(
-                    Item(byteArrayOf(), "id1", "item1.jpg", Instant.EPOCH),
-                    Item(byteArrayOf(), "id2", "item2.jpg", Instant.EPOCH)
-                )
-            }
-            val exporter: Exporter = mockk {
-                coEvery { this@mockk.get(any()) } returns null
-                coEvery { upload(any(), any(), any(), any()) } returns Unit
-            }
+            every { googlePhotosRepository.download(any()) } returns flowOf(
+                Item(byteArrayOf(), "id1", "item1.jpg", Instant.EPOCH),
+                Item(byteArrayOf(), "id2", "item2.jpg", Instant.EPOCH),
+            )
+            coEvery { exporter.get(any()) } returns null
+            coEvery { exporter.upload(any(), any(), any(), any()) } returns Unit
             val exportItems = ExportItems(googlePhotosRepository, exporter, null, "yyyy/MM/dd", "last-synced-item")
 
             exportItems(ItemType.values().toList())
@@ -56,12 +58,35 @@ class ExportItemsTest {
             }
         }
 
-    fun `when emitting an item fails then collection stops and last successful item is set`() {
+    @Test
+    fun `when emitting an item fails then collection stops and last successful item is set`() = runTest {
+        every { googlePhotosRepository.download(any()) } returns flow {
+            emit(Item(byteArrayOf(), "id1", "item1.jpg", Instant.EPOCH))
+            throw Exception()
+        }
+        coEvery { exporter.get(any()) } returns null
+        coEvery { exporter.upload(any(), any(), any(), any()) } returns Unit
+        val exportItems = ExportItems(googlePhotosRepository, exporter, null, "yyyy/MM/dd", "last-synced-item")
+
+        val exitCode = exportItems(ItemType.values().toList())
+
+        coVerifyOrder {
+            exporter.upload(byteArrayOf(), "item1.jpg", "1970/01/01/id1.jpg", false)
+            exporter.upload("id1".toByteArray(), "last-synced-item", "last-synced-item", true)
+        }
+        assertEquals(1, exitCode)
     }
 
-    fun `when using an offset ID then only items after it are emitted`() {
-    }
+    @Test
+    fun `when passing an explicit offset ID then repository is not used to get last synced item`() = runTest {
+        every { googlePhotosRepository.download(any(), "last-item-id") } returns emptyFlow()
+        val exportItems =
+            ExportItems(googlePhotosRepository, exporter, "last-item-id", "yyyy/MM/dd", "last-synced-item")
 
-    fun `when passing an explicit offset ID then repository is not used to get last synced item`() {
+        exportItems(ItemType.values().toList())
+
+        coVerify(exactly = 0) {
+            exporter.get(any())
+        }
     }
 }

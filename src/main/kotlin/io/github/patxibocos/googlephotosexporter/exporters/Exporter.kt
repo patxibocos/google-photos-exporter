@@ -15,7 +15,7 @@ interface Exporter {
         data: ByteArray,
         name: String,
         filePath: String,
-        overrideContent: Boolean
+        overrideContent: Boolean,
     )
 
     private fun decorate(maxChunkSize: Int?): Exporter {
@@ -35,9 +35,7 @@ interface Exporter {
                     val boxClientId = System.getenv("BOX_CLIENT_ID")
                     val boxClientSecret = System.getenv("BOX_CLIENT_SECRET")
                     val boxUserId = System.getenv("BOX_USER_ID")
-//                    val client = boxClient(boxClientId, boxClientSecret, boxUserId)
                     val httpClient = boxHttpClient(boxClientId, boxClientSecret, boxUserId)
-//                    BoxExporter(client, httpClient, prefixPath)
                     BoxExporter(httpClient, prefixPath)
                 }
 
@@ -58,7 +56,7 @@ interface Exporter {
                         httpClient,
                         githubRepositoryOwner,
                         githubRepositoryName,
-                        prefixPath
+                        prefixPath,
                     )
                 }
 

@@ -10,7 +10,7 @@ import java.io.File
 internal class SplitDecorator(
     private val repository: Exporter,
     maxChunkSizeMBs: Int,
-    private val logger: Logger = KotlinLogging.logger {}
+    private val logger: Logger = KotlinLogging.logger {},
 ) :
     Exporter by repository {
 

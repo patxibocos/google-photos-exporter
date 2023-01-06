@@ -1,15 +1,24 @@
 [versions]
-ktlint = "0.47.1"
-ktor = "2.2.1"
+ktlint = "0.48.1"
+ktor = "2.2.2"
 log4j = "2.19.0"
+kotlin = "1.8.0"
+coroutines = "1.6.4"
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+spotless = { id = "com.diffplug.spotless", version = "6.12.1" }
+shadow = { id = "com.github.johnrengelman.shadow", version = "7.1.2" }
 
 [libraries]
 junit = "org.junit.jupiter:junit-jupiter:5.7.1"
 kotlin-cli = "org.jetbrains.kotlinx:kotlinx-cli-jvm:0.3.5"
-kotlin-coroutines-core = "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4"
-kotlin-coroutines-test = "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4"
-kotlin-logging = "io.github.microutils:kotlin-logging-jvm:3.0.0"
-kotlin-serialization-json = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0"
+kotlin-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlin-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+kotlin-logging = "io.github.microutils:kotlin-logging-jvm:3.0.4"
+kotlin-serialization-json = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1"
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }

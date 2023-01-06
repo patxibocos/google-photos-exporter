@@ -22,7 +22,7 @@ import org.slf4j.Logger
 internal class BoxExporter(
     private val httpClient: HttpClient,
     private val prefixPath: String,
-    private val logger: Logger = KotlinLogging.logger {}
+    private val logger: Logger = KotlinLogging.logger {},
 ) : Exporter {
     private val foldersPath = "https://api.box.com/2.0"
     private val filesPath = "https://upload.box.com/api/2.0"
@@ -41,7 +41,7 @@ internal class BoxExporter(
     @Serializable
     private data class UploadResponse(
         val code: String? = null,
-        @SerialName("context_info") val contextInfo: ContextInfo? = null
+        @SerialName("context_info") val contextInfo: ContextInfo? = null,
     )
 
     @Serializable
@@ -99,10 +99,10 @@ internal class BoxExporter(
                                 Headers.build {
                                     append(HttpHeaders.ContentType, "application/octet-stream")
                                     append(HttpHeaders.ContentDisposition, "filename=\"$fileName\"")
-                                }
+                                },
                             )
-                        }
-                    )
+                        },
+                    ),
                 )
             }
         }
