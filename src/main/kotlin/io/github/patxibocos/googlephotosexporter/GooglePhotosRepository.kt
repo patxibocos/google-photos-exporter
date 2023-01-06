@@ -23,7 +23,7 @@ object GooglePhotosItemForbidden : Exception()
 private const val BASE_PATH = "https://photoslibrary.googleapis.com"
 
 @Serializable
-data class ListMediaItemsResponse(val mediaItems: List<MediaItem>, val nextPageToken: String)
+data class ListMediaItemsResponse(val mediaItems: List<MediaItem>, val nextPageToken: String? = null)
 
 @Serializable
 data class MediaItem(
@@ -104,7 +104,7 @@ class GooglePhotosRepository(
             var nextPageToken = ""
             while (true) {
                 val googlePhotosResponse = fetchItems(nextPageToken)
-                nextPageToken = googlePhotosResponse.nextPageToken
+                nextPageToken = googlePhotosResponse.nextPageToken ?: ""
                 val items = googlePhotosResponse.mediaItems
                 val newItems = items.takeWhile {
                     it.id != lastItemId
