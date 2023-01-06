@@ -22,10 +22,10 @@ import kotlin.test.assertEquals
 class ExportItemsTest {
 
     @MockK
-    lateinit var exporter: Exporter
+    private lateinit var exporter: Exporter
 
     @MockK
-    lateinit var googlePhotosRepository: GooglePhotosRepository
+    private lateinit var googlePhotosRepository: GooglePhotosRepository
 
     @Test
     fun `when no items on photos repository then nothing is uploaded`() = runTest {

@@ -91,7 +91,7 @@ post => https://stackoverflow.com/a/58741728
 After completing the steps, you should get the client ID, client secret and refresh token (to be setup later as
 environment variables).
 
-### GitHub token 🐈‍⬛
+### GitHub token 🐱
 
 This token will allow this app to push content to the GitHub repository that is configured to be used as storage. To
 create one, follow these steps:
