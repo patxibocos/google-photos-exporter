@@ -4,9 +4,10 @@ on:
   workflow_dispatch:
     inputs:
       commit:
-        description: 'Commit to build'
+        description: 'Git ref to build'
         required: true
         type: string
+        default: 'main'
       version:
         description: 'Version to release'
         required: true

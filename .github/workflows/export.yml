@@ -1,38 +1,42 @@
 name: export
 
 on:
-  schedule:
-    - cron: '0 * * * *'
   workflow_dispatch:
+    inputs:
+      exporter:
+        type: choice
+        description: 'Exporter to use'
+        required: true
+        options:
+          - box
+          - dropbox
+          - github
+          - onedrive
+      prefixPath:
+        type: string
+        description: 'Prefix path for content'
 
 jobs:
   export:
     runs-on: ubuntu-latest
     steps:
-      - name: Google Photos exporter (photos)
+      - name: GitHub
         uses: patxibocos/google-photos-exporter@v1.0.0-beta
         with:
-          exporter: github
-          itemType: photo
-          prefixPath: photos
-          maxChunkSize: 50
+          exporter: ${{ github.event.inputs.exporter }}
+          prefixPath: ${{ github.event.inputs.prefixPath }}
           googlePhotosClientId: ${{ secrets.GOOGLE_PHOTOS_CLIENT_ID }}
           googlePhotosClientSecret: ${{ secrets.GOOGLE_PHOTOS_CLIENT_SECRET }}
           googlePhotosRefreshToken: ${{ secrets.GOOGLE_PHOTOS_REFRESH_TOKEN }}
           githubAccessToken: ${{ secrets.GH_PHOTOS_REPOSITORY_TOKEN }}
           githubRepositoryOwner: ${{ secrets.GH_PHOTOS_REPOSITORY_OWNER }}
           githubRepositoryName: ${{ secrets.GH_PHOTOS_REPOSITORY_NAME }}
-
-      - name: Google Photos exporter (videos)
-        uses: patxibocos/google-photos-exporter@v1.0.0-beta
-        with:
-          exporter: github
-          itemType: video
-          prefixPath: videos
-          maxChunkSize: 50
-          googlePhotosClientId: ${{ secrets.GOOGLE_PHOTOS_CLIENT_ID }}
-          googlePhotosClientSecret: ${{ secrets.GOOGLE_PHOTOS_CLIENT_SECRET }}
-          googlePhotosRefreshToken: ${{ secrets.GOOGLE_PHOTOS_REFRESH_TOKEN }}
-          githubAccessToken: ${{ secrets.GH_VIDEOS_REPOSITORY_TOKEN }}
-          githubRepositoryOwner: ${{ secrets.GH_VIDEOS_REPOSITORY_OWNER }}
-          githubRepositoryName: ${{ secrets.GH_VIDEOS_REPOSITORY_NAME }}
+          dropboxAppKey: ${{ secrets.DROPBOX_APP_KEY }}
+          dropboxAppSecret: ${{ secrets.DROPBOX_APP_SECRET }}
+          dropboxRefreshToken: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
+          onedriveClientId: ${{ secrets.ONEDRIVE_CLIENT_ID }}
+          onedriveClientSecret: ${{ secrets.ONEDRIVE_CLIENT_SECRET }}
+          onedriveRefreshToken: ${{ secrets.ONEDRIVE_REFRESH_TOKEN }}
+          boxClientId: ${{ secrets.BOX_CLIENT_ID }}
+          boxClientSecret: ${{ secrets.BOX_CLIENT_SECRET }}
+          boxRefreshToken: ${{ secrets.BOX_REFRESH_TOKEN }}
