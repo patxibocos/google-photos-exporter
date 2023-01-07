@@ -27,13 +27,15 @@ internal class BoxExporter(
     private val foldersPath = "https://api.box.com/2.0"
     private val filesPath = "https://upload.box.com/api/2.0"
 
+    private val foldersCache = mutableMapOf<String, Folder?>()
+
     override suspend fun get(filePath: String): ByteArray? {
         val folder = getFolderForPath("$prefixPath/$filePath", false) ?: return null
         val fileName = filePath.split("/").last()
         val file = folder.itemCollection.entries.find { it.name == fileName && it.type == "file" } ?: return null
         val response = httpClient.get("$filesPath/files/${file.id}/content")
         if (!response.status.isSuccess()) {
-            return null
+            throw Exception("Failed to get file $filePath: ${response.body<String>()}")
         }
         return response.body()
     }
@@ -63,7 +65,7 @@ internal class BoxExporter(
         suspend fun createFolder(parentId: String, name: String): Folder {
             return httpClient.post("$foldersPath/folders") {
                 contentType(ContentType.Application.Json)
-                setBody("""{"name": "$name", "parent": {"id": "$parentId"}}""")
+                setBody("""{"name":"$name","parent":{"id":"$parentId"}}""")
             }.body()
         }
 
@@ -73,8 +75,11 @@ internal class BoxExporter(
             }.body()
         }
 
-        // Root folder is the folder of id 0
-        val pathParts = filePath.split("/").dropLast(1)
+        val folderPath = filePath.split("/").dropLast(1).joinToString("/")
+        if (foldersCache.containsKey(filePath)) {
+            return foldersCache[filePath]
+        }
+        val pathParts = folderPath.split("/")
         var currentFolder = getFolder("0")
         pathParts.forEach { part ->
             val folder = currentFolder.itemCollection.entries.find { it.name == part && it.type == "folder" }
@@ -83,6 +88,7 @@ internal class BoxExporter(
             }
             currentFolder = folder?.let { getFolder(it.id) } ?: createFolder(currentFolder.id, part)
         }
+        foldersCache[folderPath] = currentFolder
         return currentFolder
     }
 
