@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Export
-        uses: patxibocos/google-photos-exporter@v1.0.0-beta
+        uses: patxibocos/google-photos-exporter@v1
         with:
           exporter: ${{ github.event.inputs.exporter }}
           prefixPath: ${{ github.event.inputs.prefixPath }}

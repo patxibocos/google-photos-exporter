@@ -29,7 +29,7 @@ Additionally there are exporter dependant mandatory fields.
 - For **OneDrive** => `onedriveClientId`, `onedriveClientSecret` and `onedriveRefreshToken`
 
 ```yaml
-- uses: patxibocos/google-photos-exporter@v1.0.0-beta
+- uses: patxibocos/google-photos-exporter@v1
   with:
     # Where to upload the photos (must be dropbox, github, box or onedrive) 
     exporter:
