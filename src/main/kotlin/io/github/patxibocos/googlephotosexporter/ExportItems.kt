@@ -2,9 +2,10 @@ package io.github.patxibocos.googlephotosexporter
 
 import io.github.patxibocos.googlephotosexporter.exporters.Exporter
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.lastOrNull
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onEmpty
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.slf4j.Logger
 import java.time.ZoneOffset
@@ -29,7 +30,8 @@ class ExportItems(
     suspend operator fun invoke(itemTypes: List<ItemType>): Int {
         var exitCode = 0
         val lastItemId = offsetId?.trim() ?: exporter.get(syncFileName)?.toString(Charsets.UTF_8)?.trim()
-        googlePhotosRepository
+        var lastSyncedItem: String? = null
+        val flow = googlePhotosRepository
             .download(itemTypes, lastItemId)
             .onEmpty {
                 logger.info("No new content")
@@ -45,20 +47,28 @@ class ExportItems(
                     pathForItem(item),
                     false,
                 )
+                lastSyncedItem = item.id
             }
             .catch {
                 logger.error("Failed uploading item", it)
                 exitCode = 2
             }
-            .lastOrNull()?.let {
-            exporter.upload(
-                it.id.toByteArray(),
-                syncFileName,
-                syncFileName,
-                true,
-            )
-            logger.info("Last uploaded item: ${it.name}")
-        }
+        Runtime.getRuntime().addShutdownHook(object : Thread() {
+            override fun run() {
+                runBlocking {
+                    lastSyncedItem?.let {
+                        exporter.upload(
+                            it.toByteArray(),
+                            syncFileName,
+                            syncFileName,
+                            true,
+                        )
+                        logger.info("Last uploaded item: $it")
+                    }
+                }
+            }
+        })
+        flow.collect()
         return exitCode
     }
 }

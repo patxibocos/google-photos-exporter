@@ -33,7 +33,7 @@ internal class BoxExporter(
         val folder = getFolderForPath("$prefixPath/$filePath", false) ?: return null
         val fileName = filePath.split("/").last()
         val file = folder.itemCollection.entries.find { it.name == fileName && it.type == "file" } ?: return null
-        val response = httpClient.get("$filesPath/files/${file.id}/content")
+        val response = httpClient.get("$foldersPath/files/${file.id}/content")
         if (!response.status.isSuccess()) {
             throw Exception("Failed to get file $filePath: ${response.body<String>()}")
         }
