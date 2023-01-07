@@ -76,8 +76,8 @@ internal class BoxExporter(
         }
 
         val folderPath = filePath.split("/").dropLast(1).joinToString("/")
-        if (foldersCache.containsKey(filePath)) {
-            return foldersCache[filePath]
+        if (foldersCache.containsKey(folderPath)) {
+            return foldersCache[folderPath]
         }
         val pathParts = folderPath.split("/")
         var currentFolder = getFolder("0")
