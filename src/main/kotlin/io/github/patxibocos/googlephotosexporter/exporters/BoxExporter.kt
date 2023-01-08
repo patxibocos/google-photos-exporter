@@ -27,7 +27,7 @@ internal class BoxExporter(
     private val foldersPath = "https://api.box.com/2.0"
     private val filesPath = "https://upload.box.com/api/2.0"
 
-    private val foldersCache = mutableMapOf<String, Folder?>()
+    private val foldersCache = mutableMapOf<String, Folder>()
 
     override suspend fun get(filePath: String): ByteArray? {
         val folder = getFolderForPath("$prefixPath/$filePath", false) ?: return null
@@ -56,29 +56,31 @@ internal class BoxExporter(
     private data class Folder(val id: String, @SerialName("item_collection") val itemCollection: ItemCollection)
 
     @Serializable
-    private data class ItemCollection(val entries: List<Entry>)
+    private data class ItemCollection(val entries: MutableList<Entry>)
 
     @Serializable
     private data class Entry(val id: String, val name: String, val type: String)
 
     private suspend fun getFolderForPath(filePath: String, createIfNotExists: Boolean): Folder? {
-        suspend fun createFolder(parentId: String, name: String): Folder {
+        suspend fun createFolder(parentFolder: Folder, name: String): Folder {
             return httpClient.post("$foldersPath/folders") {
                 contentType(ContentType.Application.Json)
-                setBody("""{"name":"$name","parent":{"id":"$parentId"}}""")
-            }.body()
+                setBody("""{"name":"$name","parent":{"id":"${parentFolder.id}"}}""")
+            }.body<Folder>().also {
+                foldersCache[it.id] = it
+                foldersCache[parentFolder.id]!!.itemCollection.entries.add(Entry(it.id, name, "folder"))
+            }
         }
 
         suspend fun getFolder(id: String): Folder {
-            return httpClient.get("$foldersPath/folders/$id") {
+            return foldersCache[id] ?: httpClient.get("$foldersPath/folders/$id") {
                 contentType(ContentType.Application.Json)
-            }.body()
+            }.body<Folder>().also {
+                foldersCache[id] = it
+            }
         }
 
         val folderPath = filePath.split("/").dropLast(1).joinToString("/")
-        if (foldersCache.containsKey(folderPath)) {
-            return foldersCache[folderPath]
-        }
         val pathParts = folderPath.split("/")
         var currentFolder = getFolder("0")
         pathParts.forEach { part ->
@@ -86,9 +88,8 @@ internal class BoxExporter(
             if (folder == null && !createIfNotExists) {
                 return null
             }
-            currentFolder = folder?.let { getFolder(it.id) } ?: createFolder(currentFolder.id, part)
+            currentFolder = folder?.let { getFolder(it.id) } ?: createFolder(currentFolder, part)
         }
-        foldersCache[folderPath] = currentFolder
         return currentFolder
     }
 

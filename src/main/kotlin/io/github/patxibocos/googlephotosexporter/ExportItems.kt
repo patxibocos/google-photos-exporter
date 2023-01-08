@@ -39,8 +39,8 @@ class ExportItems(
         val shutdownHook = object : Thread() {
             override fun run() {
                 runBlocking {
-                    scope.cancel()
                     updateLastSyncedItem(lastSyncedItem)
+                    scope.cancel()
                 }
             }
         }
