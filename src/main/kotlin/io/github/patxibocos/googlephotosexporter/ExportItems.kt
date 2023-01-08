@@ -1,8 +1,12 @@
 package io.github.patxibocos.googlephotosexporter
 
 import io.github.patxibocos.googlephotosexporter.exporters.Exporter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onEmpty
 import kotlinx.coroutines.runBlocking
@@ -31,7 +35,17 @@ class ExportItems(
         var exitCode = 0
         val lastItemId = offsetId?.trim() ?: exporter.get(syncFileName)?.toString(Charsets.UTF_8)?.trim()
         var lastSyncedItem: String? = null
-        val flow = googlePhotosRepository
+        val scope = CoroutineScope(Job())
+        val shutdownHook = object : Thread() {
+            override fun run() {
+                runBlocking {
+                    scope.cancel()
+                    updateLastSyncedItem(lastSyncedItem)
+                }
+            }
+        }
+        Runtime.getRuntime().addShutdownHook(shutdownHook)
+        googlePhotosRepository
             .download(itemTypes, lastItemId)
             .onEmpty {
                 logger.info("No new content")
@@ -52,23 +66,22 @@ class ExportItems(
             .catch {
                 logger.error("Failed uploading item", it)
                 exitCode = 2
-            }
-        Runtime.getRuntime().addShutdownHook(object : Thread() {
-            override fun run() {
-                runBlocking {
-                    lastSyncedItem?.let {
-                        exporter.upload(
-                            it.toByteArray(),
-                            syncFileName,
-                            syncFileName,
-                            true,
-                        )
-                        logger.info("Last uploaded item: $it")
-                    }
-                }
-            }
-        })
-        flow.collect()
+            }.onCompletion {
+                updateLastSyncedItem(lastSyncedItem)
+            }.launchIn(scope).join()
+        Runtime.getRuntime().removeShutdownHook(shutdownHook)
         return exitCode
+    }
+
+    private suspend fun updateLastSyncedItem(lastSyncedItem: String?) {
+        lastSyncedItem?.let {
+            exporter.upload(
+                it.toByteArray(),
+                syncFileName,
+                syncFileName,
+                true,
+            )
+            logger.info("Last uploaded item: $it")
+        }
     }
 }

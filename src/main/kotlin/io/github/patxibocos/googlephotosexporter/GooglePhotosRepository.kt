@@ -59,7 +59,7 @@ class GooglePhotosRepository(
     private val logger: Logger = KotlinLogging.logger {},
 ) {
 
-    private suspend fun buildItem(mediaItem: MediaItem): Item {
+    private suspend fun buildItem(mediaItem: MediaItem): Item? {
         val suffix = when {
             mediaItem.hasVideo() -> "dv"
             mediaItem.hasPhoto() -> "d"
@@ -69,6 +69,10 @@ class GooglePhotosRepository(
         val response = httpClient.get(fullSizeUrl)
         if (response.status == HttpStatusCode.Forbidden) {
             throw GooglePhotosItemForbidden
+        }
+        if (response.status.value == 404 || response.status.value == 500) {
+            logger.error("Error getting item ${mediaItem.id} (status: ${response.status}): ${response.body<String>()}")
+            return null
         }
         if (!response.status.isSuccess()) {
             throw Exception("Could not download photo from Google Photos (status: ${response.status}): ${response.body<String>()}")
@@ -130,9 +134,10 @@ class GooglePhotosRepository(
                         logger.warn("Item ${mediaItem.filename} is not ready yet, stopping here")
                         return@flow
                     }
-                    val item = buildItem(mediaItem)
-                    emit(item)
-                    lastEmittedId = mediaItem.id
+                    buildItem(mediaItem)?.let { item ->
+                        emit(item)
+                        lastEmittedId = mediaItem.id
+                    }
                 }
                 finished = true
             } catch (e: GooglePhotosItemForbidden) {
