@@ -18,7 +18,9 @@ enum class ItemType {
     PHOTO, VIDEO
 }
 
-object GooglePhotosItemForbidden : Exception()
+private object GooglePhotosItemForbidden : Exception()
+
+private class DownloadError(m: String) : Exception(m)
 
 private const val BASE_PATH = "https://photoslibrary.googleapis.com"
 
@@ -43,16 +45,13 @@ object Photo
 data class Video(val status: String)
 
 private fun MediaItem.isNotReady(): Boolean =
-    this.hasVideoNotReady()
+    this.mediaMetadata.video != null && this.mediaMetadata.video.status != "READY"
 
 private fun MediaItem.hasPhoto(): Boolean =
     this.mediaMetadata.photo != null
 
 private fun MediaItem.hasVideo(): Boolean =
     this.mediaMetadata.video != null
-
-private fun MediaItem.hasVideoNotReady(): Boolean =
-    this.mediaMetadata.video != null && this.mediaMetadata.video.status != "READY"
 
 class GooglePhotosRepository(
     private val httpClient: HttpClient,
@@ -75,7 +74,7 @@ class GooglePhotosRepository(
             return null
         }
         if (!response.status.isSuccess()) {
-            throw Exception("Could not download photo from Google Photos (status: ${response.status}): ${response.body<String>()}")
+            throw DownloadError("Could not download item from Google Photos (status: ${response.status}): ${response.body<String>()}")
         }
         val bytes: ByteArray = response.body()
         val creationTime = mediaItem.mediaMetadata.creationTime
@@ -130,12 +129,19 @@ class GooglePhotosRepository(
             logger.info("${mediaItems.size} new items identified")
             try {
                 mediaItems.forEach { mediaItem ->
-                    if (mediaItem.isNotReady()) {
-                        logger.warn("Item ${mediaItem.filename} is not ready yet, stopping here")
-                        return@flow
+                    val item = try {
+                        // First try to download the item
+                        // Some videos may be stuck on a non-ready status, and be available for download
+                        buildItem(mediaItem)
+                    } catch (e: DownloadError) {
+                        if (mediaItem.isNotReady()) {
+                            logger.warn("Item ${mediaItem.filename} is not ready yet, stopping here")
+                            return@flow
+                        }
+                        throw e
                     }
-                    buildItem(mediaItem)?.let { item ->
-                        emit(item)
+                    item?.let {
+                        emit(it)
                         lastEmittedId = mediaItem.id
                     }
                 }
