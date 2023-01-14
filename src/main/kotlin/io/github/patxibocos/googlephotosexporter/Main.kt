@@ -15,7 +15,7 @@ fun main(args: Array<String>) {
     val googlePhotosClient = googlePhotosHttpClient(clientId, clientSecret, refreshToken)
 
     val exporter = Exporter.from(appArgs.exporter, prefixPath, maxChunkSize)
-    val googlePhotosRepository = GooglePhotosRepository(googlePhotosClient)
+    val googlePhotosRepository = GooglePhotosRepository(googlePhotosClient, 3)
 
     val exportItems = ExportItems(googlePhotosRepository, exporter, offsetId, datePathPattern, syncFileName)
     runBlocking {
