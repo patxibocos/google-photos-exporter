@@ -1,18 +1,17 @@
 package io.github.patxibocos.googlephotosexporter.exporters
 
+import io.github.patxibocos.googlephotosexporter.requestWithRetry
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
-import io.ktor.client.request.get
 import io.ktor.client.request.header
-import io.ktor.client.request.post
-import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
@@ -22,6 +21,7 @@ import mu.KotlinLogging
 import org.slf4j.Logger
 import java.security.MessageDigest
 import java.util.*
+import kotlin.collections.set
 
 internal class BoxExporter(
     private val httpClient: HttpClient,
@@ -38,10 +38,7 @@ internal class BoxExporter(
         val folder = getFolderForPath("$prefixPath/$filePath", false) ?: return null
         val fileName = filePath.split("/").last()
         val file = folder.itemCollection.entries.find { it.name == fileName && it.type == "file" } ?: return null
-        val response = httpClient.get("$foldersPath/files/${file.id}/content")
-        if (!response.status.isSuccess()) {
-            throw Exception("Failed to get file $filePath: ${response.body<String>()}")
-        }
+        val response = httpClient.requestWithRetry("$foldersPath/files/${file.id}/content", HttpMethod.Get)
         return response.body()
     }
 
@@ -90,7 +87,7 @@ internal class BoxExporter(
 
     private suspend fun getFolderForPath(filePath: String, createIfNotExists: Boolean): Folder? {
         suspend fun createFolder(parentFolder: Folder, name: String): Folder {
-            return httpClient.post("$foldersPath/folders") {
+            return httpClient.requestWithRetry("$foldersPath/folders", HttpMethod.Post) {
                 contentType(ContentType.Application.Json)
                 setBody("""{"name":"$name","parent":{"id":"${parentFolder.id}"}}""")
             }.body<Folder>().also {
@@ -100,7 +97,7 @@ internal class BoxExporter(
         }
 
         suspend fun getFolder(id: String): Folder {
-            return foldersCache[id] ?: httpClient.get("$foldersPath/folders/$id") {
+            return foldersCache[id] ?: httpClient.requestWithRetry("$foldersPath/folders/$id", HttpMethod.Get) {
                 contentType(ContentType.Application.Json)
             }.body<Folder>().also {
                 foldersCache[id] = it
@@ -122,7 +119,7 @@ internal class BoxExporter(
 
     override suspend fun upload(data: ByteArray, name: String, filePath: String, overrideContent: Boolean) {
         suspend fun uploadFile(path: String, folderId: String, fileName: String): HttpResponse {
-            return httpClient.post(path) {
+            return httpClient.requestWithRetry(path, HttpMethod.Post, dontRetryFor = listOf(HttpStatusCode.Conflict)) {
                 setBody(
                     MultiPartFormDataContent(
                         formData {
@@ -146,10 +143,7 @@ internal class BoxExporter(
             if (response.status == HttpStatusCode.Conflict && response.body<UploadResponse>().code == "item_name_in_use") {
                 if (overrideContent) {
                     val fileId = response.body<UploadResponse>().contextInfo?.conflicts?.id
-                    val uploadVersionResponse = uploadFile("$filesPath/files/$fileId/content", folder.id, fileName)
-                    if (!uploadVersionResponse.status.isSuccess()) {
-                        throw Exception("Box upload (version) failed: ${response.body<String>()}")
-                    }
+                    uploadFile("$filesPath/files/$fileId/content", folder.id, fileName)
                 } else {
                     logger.warn("File $filePath already exists")
                 }
@@ -162,7 +156,11 @@ internal class BoxExporter(
             // Create upload session ->  POST /files/upload_sessions
             // If conflict && overrideContent -> POST /files/:id/upload_sessions
             // Upload each of the parts
-            var uploadSessionResponse = httpClient.post("$filesPath/files/upload_sessions") {
+            var uploadSessionResponse = httpClient.requestWithRetry(
+                "$filesPath/files/upload_sessions",
+                HttpMethod.Post,
+                dontRetryFor = listOf(HttpStatusCode.Conflict),
+            ) {
                 contentType(ContentType.Application.Json)
                 setBody("""{"file_name":"$fileName","folder_id":"${folder.id}","file_size":${data.size}}""")
             }
@@ -173,13 +171,10 @@ internal class BoxExporter(
                 }
                 val fileId = uploadSessionResponse.body<UploadResponse>().contextInfo?.conflicts?.id
                 uploadSessionResponse =
-                    httpClient.post("$filesPath/files/$fileId/upload_sessions") {
+                    httpClient.requestWithRetry("$filesPath/files/$fileId/upload_sessions", HttpMethod.Post) {
                         contentType(ContentType.Application.Json)
                         setBody("""{"file_size":${data.size}}""")
                     }
-            }
-            if (!uploadSessionResponse.status.isSuccess()) {
-                throw Exception("Box upload session failed: ${uploadSessionResponse.body<String>()}")
             }
             val body = uploadSessionResponse.body<UploadSessionResponse>()
             data.inputStream().use { inputStream ->
@@ -189,7 +184,7 @@ internal class BoxExporter(
                     val chunk = bytes.toByteArray()
                     val sha = Base64.getEncoder().encode(MessageDigest.getInstance("SHA-1").digest(chunk))
                         .toString(Charsets.UTF_8)
-                    val response = httpClient.put(body.sessionEndpoints.uploadPart) {
+                    val response = httpClient.requestWithRetry(body.sessionEndpoints.uploadPart, HttpMethod.Put) {
                         contentType(ContentType.Application.OctetStream)
                         setBody(chunk)
                         header("Digest", "sha=$sha")
@@ -203,7 +198,7 @@ internal class BoxExporter(
                     .toString(Charsets.UTF_8)
                 val requestBody =
                     """{"parts":[${partResponses.joinToString(",") { """{"part_id":"${it.part.partId}","offset":${it.part.offset},"size":${it.part.size},"sha1":"${it.part.sha1}"}""" }}]}"""
-                httpClient.post(body.sessionEndpoints.commit) {
+                httpClient.requestWithRetry(body.sessionEndpoints.commit, HttpMethod.Post) {
                     header("Digest", "sha=$sha")
                     contentType(ContentType.Application.Json)
                     setBody(requestBody)

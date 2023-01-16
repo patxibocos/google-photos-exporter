@@ -1,12 +1,11 @@
 package io.github.patxibocos.googlephotosexporter.exporters
 
+import io.github.patxibocos.googlephotosexporter.requestWithRetry
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.request.get
-import io.ktor.client.request.post
-import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
@@ -42,11 +41,17 @@ internal class OneDriveExporter(
 
     private val basePath = "https://graph.microsoft.com/v1.0/me/drive/root:/$prefixPath"
     override suspend fun get(filePath: String): ByteArray? {
-        val response = httpClient.get("$basePath/$filePath")
-        if (!response.status.isSuccess()) {
+        val response = httpClient.requestWithRetry(
+            "$basePath/$filePath",
+            HttpMethod.Get,
+            dontRetryFor = listOf(HttpStatusCode.NotFound),
+        ) {
+            contentType(ContentType.Application.Json)
+        }
+        if (response.status == HttpStatusCode.NotFound) {
             return null
         }
-        val fileResponse = httpClient.get(response.body<ResponseBody>().downloadUrl)
+        val fileResponse = httpClient.requestWithRetry(response.body<ResponseBody>().downloadUrl, HttpMethod.Get)
         return fileResponse.body()
     }
 
@@ -54,20 +59,29 @@ internal class OneDriveExporter(
         val conflictBehaviourValue = if (overrideContent) "replace" else "fail"
         // If data is larger than 4 MB, an upload session must be created
         val response = if (data.size > maxUploadSize) {
-            val sessionResponse = httpClient.post("$basePath/$filePath:/createUploadSession") {
-                contentType(ContentType.Application.Json)
-                setBody(UploadSessionRequestBody(UploadSessionRequestBody.Item(conflictBehaviourValue, data.size)))
-            }
-            if (!sessionResponse.status.isSuccess()) {
+            val sessionResponse =
+                httpClient.requestWithRetry(
+                    "$basePath/$filePath:/createUploadSession",
+                    HttpMethod.Post,
+                    dontRetryFor = listOf(HttpStatusCode.Conflict),
+                ) {
+                    contentType(ContentType.Application.Json)
+                    setBody(UploadSessionRequestBody(UploadSessionRequestBody.Item(conflictBehaviourValue, data.size)))
+                }
+            if (sessionResponse.status == HttpStatusCode.Conflict) {
                 sessionResponse
             } else {
                 val uploadUrl = sessionResponse.body<UploadSessionResponseBody>().uploadUrl
-                httpClient.put(uploadUrl) {
+                httpClient.requestWithRetry(uploadUrl, HttpMethod.Put) {
                     setBody(data)
                 }
             }
         } else {
-            httpClient.put("$basePath/$filePath:/content?@microsoft.graph.conflictBehavior=$conflictBehaviourValue") {
+            httpClient.requestWithRetry(
+                "$basePath/$filePath:/content?@microsoft.graph.conflictBehavior=$conflictBehaviourValue",
+                HttpMethod.Put,
+                dontRetryFor = listOf(HttpStatusCode.Conflict),
+            ) {
                 setBody(data)
             }
         }

@@ -1,14 +1,13 @@
 package io.github.patxibocos.googlephotosexporter.exporters
 
+import io.github.patxibocos.googlephotosexporter.requestWithRetry
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.request.get
-import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.http.isSuccess
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
@@ -32,13 +31,17 @@ internal class GitHubExporter(
     private val basePath = "https://api.github.com/repos/$repoOwner/$repoName/contents/$prefixPath"
 
     override suspend fun get(filePath: String): ByteArray? {
-        val response = httpClient.get("$basePath/$filePath") {
+        val response = httpClient.requestWithRetry(
+            "$basePath/$filePath",
+            HttpMethod.Get,
+            dontRetryFor = listOf(HttpStatusCode.NotFound),
+        ) {
             contentType(ContentType.Application.Json)
         }
-        if (!response.status.isSuccess()) {
+        if (response.status == HttpStatusCode.NotFound) {
             return null
         }
-        val fileResponse = httpClient.get(response.body<ResponseBody>().downloadUrl) {
+        val fileResponse = httpClient.requestWithRetry(response.body<ResponseBody>().downloadUrl, HttpMethod.Get) {
             contentType(ContentType.Application.Json)
         }
         return fileResponse.body()
@@ -52,26 +55,32 @@ internal class GitHubExporter(
     ) {
         val commitMessage = "Upload $name"
         val sha: String? = if (overrideContent) {
-            val response = httpClient.get("$basePath/$filePath") {
+            val response = httpClient.requestWithRetry(
+                "$basePath/$filePath",
+                HttpMethod.Get,
+                dontRetryFor = listOf(HttpStatusCode.NotFound),
+            ) {
                 contentType(ContentType.Application.Json)
             }
-            if (response.status.isSuccess()) {
-                response.body<ResponseBody>().sha
-            } else {
+            if (response.status == HttpStatusCode.Companion.NotFound) {
                 null
+            } else {
+                response.body<ResponseBody>().sha
             }
         } else {
             null
         }
         val base64 = String(Base64.getEncoder().encode(data))
-        val response = httpClient.put("$basePath/${filePath.replace(" ", "%20")}") {
+        val response = httpClient.requestWithRetry(
+            "$basePath/${filePath.replace(" ", "%20")}",
+            HttpMethod.Put,
+            dontRetryFor = listOf(HttpStatusCode.UnprocessableEntity),
+        ) {
             contentType(ContentType.Application.Json)
             setBody(RequestBody(commitMessage, base64, sha))
         }
         if (response.status == HttpStatusCode.UnprocessableEntity) {
             logger.warn("File $filePath already exists")
-        } else if (!response.status.isSuccess()) {
-            throw Exception("GitHub upload failed: ${response.body<String>()}")
         }
     }
 }

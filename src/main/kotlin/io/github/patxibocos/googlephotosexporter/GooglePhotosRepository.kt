@@ -2,7 +2,7 @@ package io.github.patxibocos.googlephotosexporter
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.request.get
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.flow.Flow
@@ -66,7 +66,7 @@ class GooglePhotosRepository(
             else -> IllegalStateException("Unknown type, is this MediaItem a video or a photo?")
         }
         val fullSizeUrl = "${mediaItem.baseUrl}=$suffix"
-        val response = httpClient.get(fullSizeUrl)
+        val response = httpClient.requestWithRetry(fullSizeUrl, HttpMethod.Get)
         if (response.status == HttpStatusCode.Forbidden) {
             throw GooglePhotosItemForbidden
         }
@@ -90,7 +90,10 @@ class GooglePhotosRepository(
     private suspend fun fetchItems(
         nextPageToken: String,
     ): ListMediaItemsResponse {
-        val response = httpClient.get("$BASE_PATH/v1/mediaItems?pageSize=100&pageToken=$nextPageToken")
+        val response = httpClient.requestWithRetry(
+            "$BASE_PATH/v1/mediaItems?pageSize=100&pageToken=$nextPageToken",
+            HttpMethod.Get,
+        )
         return response.body()
     }
 

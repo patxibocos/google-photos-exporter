@@ -8,8 +8,15 @@ import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BearerTokens
 import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.forms.submitForm
+import io.ktor.client.request.request
+import io.ktor.client.request.url
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
+import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -121,3 +128,22 @@ internal fun oneDriveHttpClient(clientId: String, clientSecret: String, refreshT
         "refresh_token",
         refreshToken,
     )
+
+suspend fun HttpClient.requestWithRetry(
+    urlString: String,
+    method: HttpMethod,
+    dontRetryFor: List<HttpStatusCode> = emptyList(),
+    maxRetries: Int = 3,
+    block: HttpRequestBuilder.() -> Unit = {},
+): HttpResponse {
+    val response = request(HttpRequestBuilder().apply { url(urlString); block(); this.method = method })
+    val shouldRetry = !response.status.isSuccess() && !dontRetryFor.contains(response.status)
+    if (shouldRetry) {
+        if (maxRetries > 0) {
+            return requestWithRetry(urlString, method, dontRetryFor, maxRetries - 1, block)
+        } else {
+            throw Exception("Request failed (status ${response.status}): ${response.body<String>()}")
+        }
+    }
+    return response
+}

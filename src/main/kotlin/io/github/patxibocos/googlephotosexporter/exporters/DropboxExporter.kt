@@ -1,12 +1,12 @@
 package io.github.patxibocos.googlephotosexporter.exporters
 
+import io.github.patxibocos.googlephotosexporter.requestWithRetry
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.request.get
 import io.ktor.client.request.header
-import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
@@ -39,12 +39,13 @@ internal class DropboxExporter(
     private data class UploadSessionResponse(@SerialName("session_id") val sessionId: String)
 
     override suspend fun get(filePath: String): ByteArray? {
-        val response = httpClient.get("$basePath/files/download") {
+        val response = httpClient.requestWithRetry(
+            "$basePath/files/download",
+            HttpMethod.Get,
+            dontRetryFor = listOf(HttpStatusCode.Conflict),
+        ) {
             contentType(ContentType.Application.OctetStream)
             header("Dropbox-API-Arg", """{"path": "/$prefixPath/$filePath"}""")
-        }
-        if (response.status.isSuccess()) {
-            return response.body()
         }
         if (response.status == HttpStatusCode.Conflict && response.body<DownloadResponse>().error.path.tag == "not_found") {
             return null
@@ -55,12 +56,10 @@ internal class DropboxExporter(
     override suspend fun upload(data: ByteArray, name: String, filePath: String, overrideContent: Boolean) {
         // If data is larger than 150 MB, an upload session must be created
         val response = if (data.size > maxUploadSize) {
-            val uploadSessionResponse = httpClient.post("$basePath/files/upload_session/start") {
-                contentType(ContentType.Application.OctetStream)
-            }
-            if (!uploadSessionResponse.status.isSuccess()) {
-                throw Exception("Dropbox upload session start failed: ${uploadSessionResponse.body<String>()}")
-            }
+            val uploadSessionResponse =
+                httpClient.requestWithRetry("$basePath/files/upload_session/start", HttpMethod.Post) {
+                    contentType(ContentType.Application.OctetStream)
+                }
             val sessionId = uploadSessionResponse.body<UploadSessionResponse>().sessionId
             // Split by chunks of 148 MB
             // Each call must be multiple of 4194304 bytes (except for last)
@@ -69,7 +68,7 @@ internal class DropboxExporter(
                 val chunks = inputStream.buffered().iterator().asSequence().chunked(chunkSize)
                 val finalOffset = chunks.fold(0) { offset, bytes ->
                     val chunk = bytes.toByteArray()
-                    val appendResponse = httpClient.post("$basePath/files/upload_session/append_v2") {
+                    httpClient.requestWithRetry("$basePath/files/upload_session/append_v2", HttpMethod.Post) {
                         contentType(ContentType.Application.OctetStream)
                         header(
                             "Dropbox-API-Arg",
@@ -77,12 +76,9 @@ internal class DropboxExporter(
                         )
                         setBody(chunk)
                     }
-                    if (!appendResponse.status.isSuccess()) {
-                        throw Exception("Dropbox upload session append failed: ${appendResponse.body<String>()}")
-                    }
                     offset + chunk.size
                 }
-                httpClient.post("$basePath/files/upload_session/finish") {
+                httpClient.requestWithRetry("$basePath/files/upload_session/finish", HttpMethod.Post) {
                     contentType(ContentType.Application.OctetStream)
                     header(
                         "Dropbox-API-Arg",
@@ -91,7 +87,7 @@ internal class DropboxExporter(
                 }
             }
         } else {
-            httpClient.post("$basePath/files/upload") {
+            httpClient.requestWithRetry("$basePath/files/upload", HttpMethod.Post) {
                 contentType(ContentType.Application.OctetStream)
                 header("Dropbox-API-Arg", """{"path":"/$prefixPath/$filePath","strict_conflict":${!overrideContent}}""")
                 setBody(data)
