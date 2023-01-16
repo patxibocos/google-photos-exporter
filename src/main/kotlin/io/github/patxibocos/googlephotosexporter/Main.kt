@@ -4,10 +4,12 @@ import io.github.patxibocos.googlephotosexporter.cli.getAppArgs
 import io.github.patxibocos.googlephotosexporter.exporters.Exporter
 import kotlinx.coroutines.runBlocking
 import kotlin.system.exitProcess
+import kotlin.time.Duration
 
 fun main(args: Array<String>) {
     val appArgs = getAppArgs(args)
-    val (itemTypes, maxChunkSize, prefixPath, offsetId, datePathPattern, syncFileName) = appArgs
+    val (itemTypes, maxChunkSize, prefixPath, offsetId, datePathPattern, syncFileName, timeout) = appArgs
+    val timeoutDuration = timeout?.let(Duration::parse) ?: Duration.INFINITE
 
     val clientId = System.getenv("GOOGLE_PHOTOS_CLIENT_ID")
     val clientSecret = System.getenv("GOOGLE_PHOTOS_CLIENT_SECRET")
@@ -19,7 +21,7 @@ fun main(args: Array<String>) {
 
     val exportItems = ExportItems(googlePhotosRepository, exporter, offsetId, datePathPattern, syncFileName)
     runBlocking {
-        val exitCode = exportItems(itemTypes)
+        val exitCode = exportItems(itemTypes, timeoutDuration)
         exitProcess(exitCode)
     }
 }

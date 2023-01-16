@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 import java.time.Instant
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.time.Duration
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @ExtendWith(MockKExtension::class)
@@ -33,7 +34,7 @@ class ExportItemsTest {
         coEvery { exporter.get(any()) } returns null
         val exportItems = ExportItems(googlePhotosRepository, exporter, null, "yyyy/MM/dd", "last-synced-item")
 
-        exportItems(ItemType.values().toList())
+        exportItems(ItemType.values().toList(), Duration.INFINITE)
 
         coVerify(exactly = 0) { exporter.upload(any(), any(), any(), any()) }
     }
@@ -49,7 +50,7 @@ class ExportItemsTest {
             coEvery { exporter.upload(any(), any(), any(), any()) } returns Unit
             val exportItems = ExportItems(googlePhotosRepository, exporter, null, "yyyy/MM/dd", "last-synced-item")
 
-            exportItems(ItemType.values().toList())
+            exportItems(ItemType.values().toList(), Duration.INFINITE)
 
             coVerifyOrder {
                 exporter.upload(byteArrayOf(), "item1.jpg", "1970/01/01/id1.jpg", false)
@@ -68,7 +69,7 @@ class ExportItemsTest {
         coEvery { exporter.upload(any(), any(), any(), any()) } returns Unit
         val exportItems = ExportItems(googlePhotosRepository, exporter, null, "yyyy/MM/dd", "last-synced-item")
 
-        val exitCode = exportItems(ItemType.values().toList())
+        val exitCode = exportItems(ItemType.values().toList(), Duration.INFINITE)
 
         coVerifyOrder {
             exporter.upload(byteArrayOf(), "item1.jpg", "1970/01/01/id1.jpg", false)
@@ -83,7 +84,7 @@ class ExportItemsTest {
         val exportItems =
             ExportItems(googlePhotosRepository, exporter, "last-item-id", "yyyy/MM/dd", "last-synced-item")
 
-        exportItems(ItemType.values().toList())
+        exportItems(ItemType.values().toList(), Duration.INFINITE)
 
         coVerify(exactly = 0) {
             exporter.get(any())

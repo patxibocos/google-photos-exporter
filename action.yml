@@ -64,6 +64,12 @@ inputs:
   datePatternPath:
     description: 'LocalDate pattern to use for the path of the item'
     required: false
+  syncFileName:
+    description: 'Name of the file where last successful item ID will be stored'
+    required: false
+  timeout:
+    description: 'Timeout for the runner'
+    required: false
 runs:
   using: 'docker'
   image: 'Dockerfile'
@@ -74,6 +80,8 @@ runs:
     - ${{ inputs.prefixPath }}
     - ${{ inputs.offsetId }}
     - ${{ inputs.datePatternPath }}
+    - ${{ inputs.syncFileName }}
+    - ${{ inputs.timeout }}
   env:
     GOOGLE_PHOTOS_CLIENT_ID: ${{ inputs.googlePhotosClientId }}
     GOOGLE_PHOTOS_CLIENT_SECRET: ${{ inputs.googlePhotosClientSecret }}

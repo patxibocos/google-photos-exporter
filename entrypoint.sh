@@ -19,6 +19,9 @@ fi
 if [ -n "$7" ]; then
   command="$command -sfn $7"
 fi
+if [ -n "$8" ]; then
+  command="$command -to $8"
+fi
 
 echo "Running: $command"
 $command

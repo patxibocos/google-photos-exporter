@@ -4,16 +4,19 @@ import io.github.patxibocos.googlephotosexporter.exporters.Exporter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onEmpty
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.slf4j.Logger
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import kotlin.time.Duration
 
 class ExportItems(
     private val googlePhotosRepository: GooglePhotosRepository,
@@ -31,7 +34,7 @@ class ExportItems(
         return "$datePath/${item.id}$extension"
     }
 
-    suspend operator fun invoke(itemTypes: List<ItemType>): Int {
+    suspend operator fun invoke(itemTypes: List<ItemType>, timeout: Duration): Int {
         var exitCode = 0
         val lastItemId = offsetId?.trim() ?: exporter.get(syncFileName)?.toString(Charsets.UTF_8)?.trim()
         var lastSyncedItem: String? = null
@@ -43,6 +46,10 @@ class ExportItems(
                     scope.cancel()
                 }
             }
+        }
+        scope.launch {
+            delay(timeout)
+            scope.cancel()
         }
         Runtime.getRuntime().addShutdownHook(shutdownHook)
         googlePhotosRepository
