@@ -43,6 +43,12 @@ Additionally there are exporter dependant mandatory fields.
     offsetId:
     # LocalDate pattern to use for the path of the item
     datePatternPath:
+    # Name of the file where last successful item ID will be stored
+    syncFileName:
+    # Timeout for the runner    
+    timeout:
+    # ID of the last synced item
+    lastSyncedItem:
     # Google Photos client ID
     googlePhotosClientId:
     # Google Photos client secret
@@ -167,7 +173,9 @@ Options:
     --offsetId, -oi -> ID of the item to use as offset (not included) { String }
     --datePathPattern, -dpp [yyyy/MM/dd] -> LocalDate pattern to use for the path of the item { String }
     --syncFileName, -sfn [last-synced-item] -> Name of the file where last successful item ID will be stored { String }
-    --help, -h -> Usage info 
+    --timeout, -to -> Timeout for the runner { String }
+    --lastSyncedItem, -lsi -> ID of the last synced item { String }
+    --help, -h -> Usage info
 ```
 
 The single argument that needs to be passed is the exporter to be used, which must be `dropbox` or `github`

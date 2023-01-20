@@ -21,12 +21,9 @@ import kotlin.time.Duration
 class ExportItems(
     private val googlePhotosRepository: GooglePhotosRepository,
     private val exporter: Exporter,
-    private val offsetId: String?,
-    private val datePathPattern: String,
-    private val syncFileName: String,
     private val logger: Logger = KotlinLogging.logger {},
 ) {
-    private fun pathForItem(item: Item): String {
+    private fun pathForItem(item: Item, datePathPattern: String): String {
         val date = item.creationTime.atOffset(ZoneOffset.UTC).toLocalDate()
         val datePath = date.format(DateTimeFormatter.ofPattern(datePathPattern))
         val dotIndex = item.name.lastIndexOf('.')
@@ -34,15 +31,23 @@ class ExportItems(
         return "$datePath/${item.id}$extension"
     }
 
-    suspend operator fun invoke(itemTypes: List<ItemType>, timeout: Duration): Int {
+    suspend operator fun invoke(
+        offsetId: String?,
+        datePathPattern: String,
+        syncFileName: String,
+        itemTypes: List<ItemType>,
+        timeout: Duration,
+        lastSyncedItem: String?,
+    ): Int {
         var exitCode = 0
-        val lastItemId = offsetId?.trim() ?: exporter.get(syncFileName)?.toString(Charsets.UTF_8)?.trim()
-        var lastSyncedItem: String? = null
+        val lastItemId =
+            lastSyncedItem?.trim() ?: offsetId?.trim() ?: exporter.get(syncFileName)?.toString(Charsets.UTF_8)?.trim()
+        var lastSuccessfulSyncedItem: String? = null
         val scope = CoroutineScope(Job())
         val shutdownHook = object : Thread() {
             override fun run() {
                 runBlocking {
-                    updateLastSyncedItem(lastSyncedItem)
+                    updateLastSyncedItem(syncFileName, lastSuccessfulSyncedItem)
                     scope.cancel()
                 }
             }
@@ -65,22 +70,22 @@ class ExportItems(
                 exporter.upload(
                     item.bytes,
                     item.name,
-                    pathForItem(item),
+                    pathForItem(item, datePathPattern),
                     false,
                 )
-                lastSyncedItem = item.id
+                lastSuccessfulSyncedItem = item.id
             }
             .catch {
                 logger.error("Failed uploading item", it)
                 exitCode = 2
             }.onCompletion {
-                updateLastSyncedItem(lastSyncedItem)
+                updateLastSyncedItem(syncFileName, lastSuccessfulSyncedItem)
             }.launchIn(scope).join()
         Runtime.getRuntime().removeShutdownHook(shutdownHook)
         return exitCode
     }
 
-    private suspend fun updateLastSyncedItem(lastSyncedItem: String?) {
+    private suspend fun updateLastSyncedItem(syncFileName: String, lastSyncedItem: String?) {
         lastSyncedItem?.let {
             exporter.upload(
                 it.toByteArray(),

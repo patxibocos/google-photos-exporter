@@ -15,6 +15,7 @@ internal data class AppArgs(
     val datePathPattern: String,
     val syncFileName: String,
     val timeout: String?,
+    val lastSyncedItem: String?,
     val exporter: ExporterSubcommands<*>,
 )
 
@@ -56,6 +57,11 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         shortName = "to",
         description = "Timeout for the runner",
     )
+    val lastSyncedItem by parser.option(
+        ArgType.String,
+        shortName = "lsi",
+        description = "ID of the last synced item",
+    )
     parser.subcommands(
         ExporterSubcommands.GitHub,
         ExporterSubcommands.Dropbox,
@@ -73,5 +79,6 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         syncFileName = syncFileName,
         exporter = exporter,
         timeout = timeout,
+        lastSyncedItem = lastSyncedItem,
     )
 }

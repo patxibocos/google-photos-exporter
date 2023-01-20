@@ -22,6 +22,9 @@ fi
 if [ -n "$8" ]; then
   command="$command -to $8"
 fi
+if [ -n "$9" ]; then
+  command="$command -lsi $9"
+fi
 
 echo "Running: $command"
 $command

@@ -13,6 +13,30 @@ inputs:
   exporter:
     description: 'Where to store content (github,  dropbox, box or onedrive)'
     required: true
+  itemType:
+    description: 'Allows exporting just specific item types (photo or video)'
+    required: false
+  prefixPath:
+    description: 'Path to be used as base for the exported files'
+    required: false
+  maxChunkSize:
+    description: 'Maximum size (in MB) of each chunk'
+    required: false
+  offsetId:
+    description: 'ID of the item to use as offset (not included)'
+    required: false
+  datePatternPath:
+    description: 'LocalDate pattern to use for the path of the item'
+    required: false
+  syncFileName:
+    description: 'Name of the file where last successful item ID will be stored'
+    required: false
+  timeout:
+    description: 'Timeout for the runner'
+    required: false
+  lastSyncedItem:
+    description: 'ID of the last synced item'
+    required: false
   githubAccessToken:
     description: 'GitHub access token'
     required: false
@@ -49,27 +73,6 @@ inputs:
   onedriveRefreshToken:
     description: 'OneDrive refresh token'
     required: false
-  itemType:
-    description: 'Allows exporting just specific item types (photo or video)'
-    required: false
-  maxChunkSize:
-    description: 'Maximum size (in MB) of each chunk'
-    required: false
-  prefixPath:
-    description: 'Path to be used as base for the exported files'
-    required: false
-  offsetId:
-    description: 'ID of the item to use as offset (not included)'
-    required: false
-  datePatternPath:
-    description: 'LocalDate pattern to use for the path of the item'
-    required: false
-  syncFileName:
-    description: 'Name of the file where last successful item ID will be stored'
-    required: false
-  timeout:
-    description: 'Timeout for the runner'
-    required: false
 runs:
   using: 'docker'
   image: 'Dockerfile'
@@ -82,6 +85,7 @@ runs:
     - ${{ inputs.datePatternPath }}
     - ${{ inputs.syncFileName }}
     - ${{ inputs.timeout }}
+    - ${{ inputs.lastSyncedItem }}
   env:
     GOOGLE_PHOTOS_CLIENT_ID: ${{ inputs.googlePhotosClientId }}
     GOOGLE_PHOTOS_CLIENT_SECRET: ${{ inputs.googlePhotosClientSecret }}
