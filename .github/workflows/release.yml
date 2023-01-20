@@ -11,6 +11,10 @@ on:
         description: 'Version to release'
         required: true
         type: string
+      update-base-tag:
+        description: 'Update base tag'
+        type: boolean
+        default: false
 
 jobs:
   release:
@@ -46,8 +50,19 @@ jobs:
           tag_push: '--force'
 
       - name: Create release
-        uses: softprops/action-gh-release@v1
+        run: gh release create ${{ inputs.version }} release/google-photos-exporter.jar --target release/${{ inputs.version }} --title ${{ inputs.version }} --latest --generate-notes
+
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Calculate major version tag
+        run: echo "MAJOR_VERSION_TAG=$(echo ${{ inputs.version }} | cut -d '.' -f 1)" >> $GITHUB_ENV
+        if: ${{ inputs.update-base-tag }}
+
+      - name: Update major version tag
+        if: ${{ inputs.update-base-tag }}
+        uses: rickstaa/action-create-tag@v1
         with:
-          files: release/google-photos-exporter.jar
-          tag_name: ${{ inputs.version }}
-          generate_release_notes: true
+          tag: ${{ env.MAJOR_VERSION_TAG }}
+          force_push_tag: true
+          commit_sha: release/${{ inputs.version }}
