@@ -9,7 +9,7 @@ import kotlin.time.Duration.Companion.minutes
 
 fun main(args: Array<String>) {
     val appArgs = getAppArgs(args)
-    val (itemTypes, maxChunkSize, prefixPath, offsetId, datePathPattern, syncFileName, timeout, lastSyncedItem, requestTimeout) = appArgs
+    val (itemTypes, maxChunkSize, prefixPath, offsetId, datePathPattern, syncFileName, timeout, lastSyncedItem, requestTimeout, overrideContent) = appArgs
     val timeoutDuration = timeout?.let(Duration::parse) ?: Duration.INFINITE
     val requestTimeoutDuration = requestTimeout?.let(Duration::parse) ?: 5.minutes
 
@@ -21,7 +21,7 @@ fun main(args: Array<String>) {
     val exporter = Exporter.from(appArgs.exporter, prefixPath, maxChunkSize, requestTimeoutDuration)
     val googlePhotosRepository = GooglePhotosRepository(googlePhotosClient)
 
-    val exportItems = ExportItems(googlePhotosRepository, exporter)
+    val exportItems = ExportItems(googlePhotosRepository, exporter, overrideContent)
     runBlocking {
         val exitCode = exportItems(
             offsetId = offsetId,

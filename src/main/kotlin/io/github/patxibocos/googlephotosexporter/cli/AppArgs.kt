@@ -17,6 +17,7 @@ internal data class AppArgs(
     val timeout: String?,
     val lastSyncedItem: String?,
     val requestTimeout: String?,
+    val overrideContent: Boolean,
     val exporter: ExporterSubcommands<*>,
 )
 
@@ -68,6 +69,11 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         shortName = "rto",
         description = "Timeout for the requests",
     )
+    val overrideContent by parser.option(
+        ArgType.Boolean,
+        shortName = "oc",
+        description = "Whether to override content",
+    ).default(false)
     parser.subcommands(
         ExporterSubcommands.GitHub,
         ExporterSubcommands.Dropbox,
@@ -83,9 +89,10 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         offsetId = offsetId,
         datePathPattern = datePathPattern,
         syncFileName = syncFileName,
-        exporter = exporter,
         timeout = timeout,
         lastSyncedItem = lastSyncedItem,
         requestTimeout = requestTimeout,
+        overrideContent = overrideContent,
+        exporter = exporter,
     )
 }

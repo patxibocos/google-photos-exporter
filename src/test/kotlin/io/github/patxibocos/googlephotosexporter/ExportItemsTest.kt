@@ -32,7 +32,7 @@ class ExportItemsTest {
     fun `when no items on photos repository then nothing is uploaded`() = runTest {
         every { googlePhotosRepository.download(any()) } returns emptyFlow()
         coEvery { exporter.get(any()) } returns null
-        val exportItems = ExportItems(googlePhotosRepository, exporter)
+        val exportItems = ExportItems(googlePhotosRepository, exporter, false)
 
         exportItems(
             offsetId = null,
@@ -55,7 +55,7 @@ class ExportItemsTest {
             )
             coEvery { exporter.get(any()) } returns null
             coEvery { exporter.upload(any(), any(), any(), any()) } returns Unit
-            val exportItems = ExportItems(googlePhotosRepository, exporter)
+            val exportItems = ExportItems(googlePhotosRepository, exporter, false)
 
             exportItems(
                 offsetId = null,
@@ -81,7 +81,7 @@ class ExportItemsTest {
         }
         coEvery { exporter.get(any()) } returns null
         coEvery { exporter.upload(any(), any(), any(), any()) } returns Unit
-        val exportItems = ExportItems(googlePhotosRepository, exporter)
+        val exportItems = ExportItems(googlePhotosRepository, exporter, false)
 
         val exitCode =
             exportItems(
@@ -104,7 +104,7 @@ class ExportItemsTest {
     fun `when passing an explicit offset ID then repository is not used to get last synced item`() = runTest {
         every { googlePhotosRepository.download(any(), "last-item-id") } returns emptyFlow()
         val exportItems =
-            ExportItems(googlePhotosRepository, exporter)
+            ExportItems(googlePhotosRepository, exporter, false)
 
         exportItems(
             offsetId = "last-item-id",

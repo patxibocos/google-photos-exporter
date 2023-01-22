@@ -40,6 +40,9 @@ inputs:
   requestTimeout:
     description: 'Timeout for the requests'
     required: false
+  overrideContent:
+    description: 'Whether to override content'
+    required: false
   githubAccessToken:
     description: 'GitHub access token'
     required: false
@@ -90,6 +93,7 @@ runs:
     - ${{ inputs.timeout }}
     - ${{ inputs.lastSyncedItem }}
     - ${{ inputs.requestTimeout }}
+    - ${{ inputs.overrideContent }}
   env:
     GOOGLE_PHOTOS_CLIENT_ID: ${{ inputs.googlePhotosClientId }}
     GOOGLE_PHOTOS_CLIENT_SECRET: ${{ inputs.googlePhotosClientSecret }}

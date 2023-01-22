@@ -21,6 +21,7 @@ import kotlin.time.Duration
 class ExportItems(
     private val googlePhotosRepository: GooglePhotosRepository,
     private val exporter: Exporter,
+    private val overrideContent: Boolean,
     private val logger: Logger = KotlinLogging.logger {},
 ) {
     private fun pathForItem(item: Item, datePathPattern: String): String {
@@ -71,7 +72,7 @@ class ExportItems(
                     item.bytes,
                     item.name,
                     pathForItem(item, datePathPattern),
-                    false,
+                    overrideContent,
                 )
                 lastSuccessfulSyncedItem = item.id
             }

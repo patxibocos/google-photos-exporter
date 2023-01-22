@@ -28,6 +28,9 @@ fi
 if [ -n "${10}" ]; then
   command="$command -rto ${10}"
 fi
+if [ -n "${11}" ]; then
+  command="$command -oc ${11}"
+fi
 
 echo "Running: $command"
 $command

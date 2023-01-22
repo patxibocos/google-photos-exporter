@@ -178,6 +178,7 @@ Options:
     --timeout, -to -> Timeout for the runner { String }
     --lastSyncedItem, -lsi -> ID of the last synced item { String }
     --requestTimeout, -rto -> Timeout for the requests { String }
+    --overrideContent, -oc [false] -> Whether to override content
     --help, -h -> Usage info
 ```
 

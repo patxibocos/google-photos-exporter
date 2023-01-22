@@ -58,7 +58,7 @@ class GooglePhotosRepository(
     private val logger: Logger = KotlinLogging.logger {},
 ) {
 
-    private suspend fun buildItem(mediaItem: MediaItem): Item? {
+    private suspend fun buildItem(mediaItem: MediaItem): Item {
         val suffix = when {
             mediaItem.hasVideo() -> "dv"
             mediaItem.hasPhoto() -> "d"
@@ -139,10 +139,8 @@ class GooglePhotosRepository(
                         }
                         throw e
                     }
-                    item?.let {
-                        emit(it)
-                        lastEmittedId = mediaItem.id
-                    }
+                    emit(item)
+                    lastEmittedId = mediaItem.id
                 }
                 finished = true
             } catch (e: GooglePhotosItemForbidden) {
