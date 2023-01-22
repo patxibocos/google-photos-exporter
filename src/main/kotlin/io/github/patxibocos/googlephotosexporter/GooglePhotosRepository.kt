@@ -55,11 +55,10 @@ private fun MediaItem.hasVideo(): Boolean =
 
 class GooglePhotosRepository(
     private val httpClient: HttpClient,
-    private val maxRetries: Int,
     private val logger: Logger = KotlinLogging.logger {},
 ) {
 
-    private suspend fun buildItem(mediaItem: MediaItem, retry: Int = 0): Item? {
+    private suspend fun buildItem(mediaItem: MediaItem): Item? {
         val suffix = when {
             mediaItem.hasVideo() -> "dv"
             mediaItem.hasPhoto() -> "d"
@@ -71,14 +70,6 @@ class GooglePhotosRepository(
             throw GooglePhotosItemForbidden
         }
         if (!response.status.isSuccess()) {
-            if (retry < maxRetries) {
-                return buildItem(mediaItem, retry + 1)
-            }
-            if (response.status.value == 404 || response.status.value == 500) {
-                // For some reason some items are not downloadable (when status is 404 or 500), so just skip them
-                logger.error("Error getting item ${mediaItem.id} (status: ${response.status}): ${response.body<String>()}")
-                return null
-            }
             throw DownloadError("Could not download item from Google Photos (status: ${response.status}): ${response.body<String>()}")
         }
         val bytes: ByteArray = response.body()

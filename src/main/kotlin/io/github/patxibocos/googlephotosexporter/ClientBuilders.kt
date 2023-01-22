@@ -3,6 +3,7 @@ package io.github.patxibocos.googlephotosexporter
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.auth.Auth
 import io.ktor.client.plugins.auth.providers.BearerTokens
@@ -92,7 +93,7 @@ internal fun googlePhotosHttpClient(
         requestTimeout,
     )
 
-internal fun githubHttpClient(accessToken: String): HttpClient {
+internal fun githubHttpClient(accessToken: String, requestTimeout: Duration): HttpClient {
     return HttpClient(CIO) {
         install(Auth) {
             bearer {
@@ -109,7 +110,7 @@ internal fun githubHttpClient(accessToken: String): HttpClient {
             )
         }
         install(HttpTimeout) {
-            requestTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
+            requestTimeoutMillis = requestTimeout.inWholeMilliseconds
         }
     }
 }
@@ -168,7 +169,15 @@ suspend fun HttpClient.requestWithRetry(
     maxRetries: Int = 3,
     block: HttpRequestBuilder.() -> Unit = {},
 ): HttpResponse {
-    val response = request(HttpRequestBuilder().apply { url(urlString); block(); this.method = method })
+    val response = try {
+        request(HttpRequestBuilder().apply { url(urlString); block(); this.method = method })
+    } catch (_: HttpRequestTimeoutException) {
+        if (maxRetries > 0) {
+            return requestWithRetry(urlString, method, dontRetryFor, maxRetries - 1, block)
+        } else {
+            throw Exception("Request $method $urlString failed with timeout after $maxRetries retries")
+        }
+    }
     val shouldRetry = !response.status.isSuccess() && !dontRetryFor.contains(response.status)
     if (shouldRetry) {
         if (maxRetries > 0) {

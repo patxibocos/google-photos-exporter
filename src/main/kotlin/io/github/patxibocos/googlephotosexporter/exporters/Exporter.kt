@@ -52,7 +52,7 @@ interface Exporter {
                     val githubAccessToken = System.getenv("GITHUB_ACCESS_TOKEN")
                     val githubRepositoryOwner = System.getenv("GITHUB_REPOSITORY_OWNER")
                     val githubRepositoryName = System.getenv("GITHUB_REPOSITORY_NAME")
-                    val httpClient = githubHttpClient(githubAccessToken)
+                    val httpClient = githubHttpClient(githubAccessToken, requestTimeout)
                     GitHubExporter(
                         httpClient,
                         githubRepositoryOwner,
