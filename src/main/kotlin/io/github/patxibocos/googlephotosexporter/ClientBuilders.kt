@@ -21,6 +21,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlin.time.Duration
 
 @Serializable
 data class TokenInfo(@SerialName("access_token") val accessToken: String)
@@ -31,6 +32,7 @@ private fun httpClientForOAuth(
     clientSecret: String,
     grantType: String,
     refreshToken: String?,
+    requestTimeout: Duration,
     vararg extraParams: Pair<String, String>,
 ): HttpClient {
     val bearerTokenStorage = mutableListOf<BearerTokens>()
@@ -70,18 +72,24 @@ private fun httpClientForOAuth(
             }
         }
         install(HttpTimeout) {
-            requestTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS
+            requestTimeoutMillis = requestTimeout.inWholeMilliseconds
         }
     }
 }
 
-internal fun googlePhotosHttpClient(clientId: String, clientSecret: String, refreshToken: String): HttpClient =
+internal fun googlePhotosHttpClient(
+    clientId: String,
+    clientSecret: String,
+    refreshToken: String,
+    requestTimeout: Duration,
+): HttpClient =
     httpClientForOAuth(
         "https://accounts.google.com/o/oauth2/token",
         clientId,
         clientSecret,
         "refresh_token",
         refreshToken,
+        requestTimeout,
     )
 
 internal fun githubHttpClient(accessToken: String): HttpClient {
@@ -106,27 +114,51 @@ internal fun githubHttpClient(accessToken: String): HttpClient {
     }
 }
 
-internal fun dropboxHttpClient(appKey: String, appSecret: String, refreshToken: String): HttpClient =
-    httpClientForOAuth("https://api.dropbox.com/oauth2/token", appKey, appSecret, "refresh_token", refreshToken)
+internal fun dropboxHttpClient(
+    appKey: String,
+    appSecret: String,
+    refreshToken: String,
+    requestTimeout: Duration,
+): HttpClient =
+    httpClientForOAuth(
+        "https://api.dropbox.com/oauth2/token",
+        appKey,
+        appSecret,
+        "refresh_token",
+        refreshToken,
+        requestTimeout,
+    )
 
-internal fun boxHttpClient(boxClientId: String, boxClientSecret: String, boxUserId: String): HttpClient =
+internal fun boxHttpClient(
+    boxClientId: String,
+    boxClientSecret: String,
+    boxUserId: String,
+    requestTimeout: Duration,
+): HttpClient =
     httpClientForOAuth(
         "https://api.box.com/oauth2/token",
         boxClientId,
         boxClientSecret,
         "client_credentials",
         null,
+        requestTimeout,
         "box_subject_type" to "user",
         "box_subject_id" to boxUserId,
     )
 
-internal fun oneDriveHttpClient(clientId: String, clientSecret: String, refreshToken: String): HttpClient =
+internal fun oneDriveHttpClient(
+    clientId: String,
+    clientSecret: String,
+    refreshToken: String,
+    requestTimeout: Duration,
+): HttpClient =
     httpClientForOAuth(
         "https://login.live.com/oauth20_token.srf",
         clientId,
         clientSecret,
         "refresh_token",
         refreshToken,
+        requestTimeout,
     )
 
 suspend fun HttpClient.requestWithRetry(

@@ -8,6 +8,7 @@ import io.github.patxibocos.googlephotosexporter.exporters.decorators.RetryDecor
 import io.github.patxibocos.googlephotosexporter.exporters.decorators.SplitDecorator
 import io.github.patxibocos.googlephotosexporter.githubHttpClient
 import io.github.patxibocos.googlephotosexporter.oneDriveHttpClient
+import kotlin.time.Duration
 
 interface Exporter {
     suspend fun get(filePath: String): ByteArray?
@@ -29,13 +30,13 @@ interface Exporter {
     }
 
     companion object {
-        internal fun from(exporter: ExporterSubcommands<*>, prefixPath: String, maxChunkSize: Int?): Exporter {
+        internal fun from(exporter: ExporterSubcommands<*>, prefixPath: String, maxChunkSize: Int?, requestTimeout: Duration): Exporter {
             return when (exporter) {
                 ExporterSubcommands.Box -> {
                     val boxClientId = System.getenv("BOX_CLIENT_ID")
                     val boxClientSecret = System.getenv("BOX_CLIENT_SECRET")
                     val boxUserId = System.getenv("BOX_USER_ID")
-                    val httpClient = boxHttpClient(boxClientId, boxClientSecret, boxUserId)
+                    val httpClient = boxHttpClient(boxClientId, boxClientSecret, boxUserId, requestTimeout)
                     BoxExporter(httpClient, prefixPath)
                 }
 
@@ -43,7 +44,7 @@ interface Exporter {
                     val dropboxRefreshToken = System.getenv("DROPBOX_REFRESH_TOKEN")
                     val dropboxAppKey = System.getenv("DROPBOX_APP_KEY")
                     val dropboxAppSecret = System.getenv("DROPBOX_APP_SECRET")
-                    val dropboxClient = dropboxHttpClient(dropboxAppKey, dropboxAppSecret, dropboxRefreshToken)
+                    val dropboxClient = dropboxHttpClient(dropboxAppKey, dropboxAppSecret, dropboxRefreshToken, requestTimeout)
                     DropboxExporter(dropboxClient, prefixPath)
                 }
 
@@ -64,7 +65,7 @@ interface Exporter {
                     val oneDriveClientId = System.getenv("ONEDRIVE_CLIENT_ID")
                     val oneDriveClientSecret = System.getenv("ONEDRIVE_CLIENT_SECRET")
                     val oneDriveRefreshToken = System.getenv("ONEDRIVE_REFRESH_TOKEN")
-                    val httpClient = oneDriveHttpClient(oneDriveClientId, oneDriveClientSecret, oneDriveRefreshToken)
+                    val httpClient = oneDriveHttpClient(oneDriveClientId, oneDriveClientSecret, oneDriveRefreshToken, requestTimeout)
                     OneDriveExporter(httpClient, prefixPath)
                 }
             }.decorate(maxChunkSize)

@@ -49,6 +49,8 @@ Additionally there are exporter dependant mandatory fields.
     timeout:
     # ID of the last synced item
     lastSyncedItem:
+    # Timeout for the requests
+    requestTimeout:
     # Google Photos client ID
     googlePhotosClientId:
     # Google Photos client secret
@@ -175,6 +177,7 @@ Options:
     --syncFileName, -sfn [last-synced-item] -> Name of the file where last successful item ID will be stored { String }
     --timeout, -to -> Timeout for the runner { String }
     --lastSyncedItem, -lsi -> ID of the last synced item { String }
+    --requestTimeout, -rto -> Timeout for the requests { String }
     --help, -h -> Usage info
 ```
 

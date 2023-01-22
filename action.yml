@@ -37,6 +37,9 @@ inputs:
   lastSyncedItem:
     description: 'ID of the last synced item'
     required: false
+  requestTimeout:
+    description: 'Timeout for the requests'
+    required: false
   githubAccessToken:
     description: 'GitHub access token'
     required: false
@@ -86,6 +89,7 @@ runs:
     - ${{ inputs.syncFileName }}
     - ${{ inputs.timeout }}
     - ${{ inputs.lastSyncedItem }}
+    - ${{ inputs.requestTimeout }}
   env:
     GOOGLE_PHOTOS_CLIENT_ID: ${{ inputs.googlePhotosClientId }}
     GOOGLE_PHOTOS_CLIENT_SECRET: ${{ inputs.googlePhotosClientSecret }}

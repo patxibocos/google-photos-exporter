@@ -25,6 +25,9 @@ fi
 if [ -n "$9" ]; then
   command="$command -lsi $9"
 fi
+if [ -n "${10}" ]; then
+  command="$command -rto ${10}"
+fi
 
 echo "Running: $command"
 $command

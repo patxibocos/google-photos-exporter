@@ -16,6 +16,7 @@ internal data class AppArgs(
     val syncFileName: String,
     val timeout: String?,
     val lastSyncedItem: String?,
+    val requestTimeout: String?,
     val exporter: ExporterSubcommands<*>,
 )
 
@@ -62,6 +63,11 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         shortName = "lsi",
         description = "ID of the last synced item",
     )
+    val requestTimeout by parser.option(
+        ArgType.String,
+        shortName = "rto",
+        description = "Timeout for the requests",
+    )
     parser.subcommands(
         ExporterSubcommands.GitHub,
         ExporterSubcommands.Dropbox,
@@ -80,5 +86,6 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         exporter = exporter,
         timeout = timeout,
         lastSyncedItem = lastSyncedItem,
+        requestTimeout = requestTimeout,
     )
 }
