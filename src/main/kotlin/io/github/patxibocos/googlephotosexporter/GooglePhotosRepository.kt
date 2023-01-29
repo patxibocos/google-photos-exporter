@@ -4,7 +4,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.isSuccess
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
@@ -19,8 +18,6 @@ enum class ItemType {
 }
 
 private object GooglePhotosItemForbidden : Exception()
-
-private class DownloadError(m: String) : Exception(m)
 
 private const val BASE_PATH = "https://photoslibrary.googleapis.com"
 
@@ -69,9 +66,6 @@ class GooglePhotosRepository(
         if (response.status == HttpStatusCode.Forbidden) {
             throw GooglePhotosItemForbidden
         }
-        if (!response.status.isSuccess()) {
-            throw DownloadError("Could not download item from Google Photos (status: ${response.status}): ${response.body<String>()}")
-        }
         val bytes: ByteArray = response.body()
         val creationTime = mediaItem.mediaMetadata.creationTime
         val instant = Instant.parse(creationTime)
@@ -98,7 +92,7 @@ class GooglePhotosRepository(
     }
 
     fun download(itemTypes: List<ItemType>, lastItemId: String? = null): Flow<Item> = flow {
-        suspend fun getItems(lastItemId: String?): List<MediaItem> {
+        suspend fun getItems(lastItemId: String?, itemTypes: List<ItemType>): List<MediaItem> {
             // listMediaItems API doesn't support ordering, so this will start fetching recent pages until:
             //  - lastItemId is null -> every page
             //  - lastItemId not null -> every page until a page contains the given id
@@ -124,7 +118,7 @@ class GooglePhotosRepository(
         var finished = false
         var lastEmittedId = lastItemId
         while (!finished) {
-            val mediaItems = getItems(lastEmittedId)
+            val mediaItems = getItems(lastEmittedId, itemTypes)
             logger.info("${mediaItems.size} new items identified")
             try {
                 mediaItems.forEach { mediaItem ->

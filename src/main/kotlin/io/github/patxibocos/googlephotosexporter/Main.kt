@@ -9,27 +9,26 @@ import kotlin.time.Duration.Companion.minutes
 
 fun main(args: Array<String>) {
     val appArgs = getAppArgs(args)
-    val (itemTypes, maxChunkSize, prefixPath, offsetId, datePathPattern, syncFileName, timeout, lastSyncedItem, requestTimeout, overrideContent) = appArgs
-    val timeoutDuration = timeout?.let(Duration::parse) ?: Duration.INFINITE
-    val requestTimeoutDuration = requestTimeout?.let(Duration::parse) ?: 5.minutes
+    val timeoutDuration = appArgs.timeout?.let(Duration::parse) ?: Duration.INFINITE
+    val requestTimeoutDuration = appArgs.requestTimeout?.let(Duration::parse) ?: 5.minutes
 
     val clientId = System.getenv("GOOGLE_PHOTOS_CLIENT_ID")
     val clientSecret = System.getenv("GOOGLE_PHOTOS_CLIENT_SECRET")
     val refreshToken = System.getenv("GOOGLE_PHOTOS_REFRESH_TOKEN")
     val googlePhotosClient = googlePhotosHttpClient(clientId, clientSecret, refreshToken, requestTimeoutDuration)
 
-    val exporter = Exporter.from(appArgs.exporter, prefixPath, maxChunkSize, requestTimeoutDuration)
+    val exporter = Exporter.from(appArgs.exporter, appArgs.prefixPath, appArgs.maxChunkSize, requestTimeoutDuration)
     val googlePhotosRepository = GooglePhotosRepository(googlePhotosClient)
 
-    val exportItems = ExportItems(googlePhotosRepository, exporter, overrideContent)
+    val exportItems = ExportItems(googlePhotosRepository, exporter, appArgs.overrideContent)
     runBlocking {
         val exitCode = exportItems(
-            offsetId = offsetId,
-            datePathPattern = datePathPattern,
-            syncFileName = syncFileName,
-            itemTypes = itemTypes,
+            offsetId = appArgs.offsetId,
+            datePathPattern = appArgs.datePathPattern,
+            syncFileName = appArgs.syncFileName,
+            itemTypes = appArgs.itemTypes,
             timeout = timeoutDuration,
-            lastSyncedItem = lastSyncedItem,
+            lastSyncedItem = appArgs.lastSyncedItem,
         )
         exitProcess(exitCode)
     }

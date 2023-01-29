@@ -51,7 +51,6 @@ jobs:
 
       - name: Create release
         run: gh release create ${{ inputs.version }} release/google-photos-exporter.jar --target release/${{ inputs.version }} --title ${{ inputs.version }} --latest --generate-notes
-
         env:
           GH_TOKEN: ${{ github.token }}
 

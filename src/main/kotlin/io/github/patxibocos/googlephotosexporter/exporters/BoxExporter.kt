@@ -14,7 +14,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.http.isSuccess
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
@@ -147,8 +146,6 @@ internal class BoxExporter(
                 } else {
                     logger.warn("File $filePath already exists")
                 }
-            } else if (!response.status.isSuccess()) {
-                throw Exception("Box upload failed: ${response.body<String>()}")
             }
         }
 

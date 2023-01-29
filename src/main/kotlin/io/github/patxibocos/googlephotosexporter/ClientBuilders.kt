@@ -183,8 +183,10 @@ suspend fun HttpClient.requestWithRetry(
         if (maxRetries > 0) {
             return requestWithRetry(urlString, method, dontRetryFor, maxRetries - 1, block)
         } else {
-            throw Exception("Request failed (status ${response.status}): ${response.body<String>()}")
+            throw DownloadError("Request failed (status ${response.status}): ${response.body<String>()}")
         }
     }
     return response
 }
+
+internal class DownloadError(m: String) : Exception(m)

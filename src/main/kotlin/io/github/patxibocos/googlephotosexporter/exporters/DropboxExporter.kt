@@ -9,7 +9,6 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.http.isSuccess
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import mu.KotlinLogging
@@ -95,8 +94,6 @@ internal class DropboxExporter(
         }
         if (response.status == HttpStatusCode.Conflict && response.body<DownloadResponse>().error.path.tag == "conflict") {
             logger.warn("File $filePath already exists")
-        } else if (!response.status.isSuccess()) {
-            throw Exception("Dropbox upload failed: ${response.body<String>()}")
         }
     }
 }
