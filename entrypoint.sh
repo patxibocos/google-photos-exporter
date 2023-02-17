@@ -22,13 +22,10 @@ fi
 if [ -n "$8" ]; then
   command="$command -to $8"
 fi
-if [ -n "$9" ]; then
-  command="$command -lsi $9"
-fi
-if [ -n "${10}" ]; then
+if [ -n "${9}" ]; then
   command="$command -rto ${10}"
 fi
-if [ -n "${11}" ]; then
+if [ -n "${10}" ]; then
   command="$command -oc ${11}"
 fi
 

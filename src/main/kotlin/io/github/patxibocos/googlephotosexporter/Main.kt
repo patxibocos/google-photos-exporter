@@ -3,7 +3,6 @@ package io.github.patxibocos.googlephotosexporter
 import io.github.patxibocos.googlephotosexporter.cli.getAppArgs
 import io.github.patxibocos.googlephotosexporter.exporters.Exporter
 import kotlinx.coroutines.runBlocking
-import kotlin.system.exitProcess
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
@@ -22,14 +21,12 @@ fun main(args: Array<String>) {
 
     val exportItems = ExportItems(googlePhotosRepository, exporter, appArgs.overrideContent)
     runBlocking {
-        val exitCode = exportItems(
-            offsetId = appArgs.offsetId,
+        val offsetId = appArgs.offsetId ?: exporter.get(appArgs.syncFileName)?.toString(Charsets.UTF_8)?.trim()
+        exportItems(
+            offsetId = offsetId,
             datePathPattern = appArgs.datePathPattern,
-            syncFileName = appArgs.syncFileName,
             itemTypes = appArgs.itemTypes,
             timeout = timeoutDuration,
-            lastSyncedItem = appArgs.lastSyncedItem,
-        )
-        exitProcess(exitCode)
+        ).collect(::println)
     }
 }

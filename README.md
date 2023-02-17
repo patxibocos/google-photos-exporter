@@ -47,8 +47,6 @@ Additionally there are exporter dependant mandatory fields.
     syncFileName:
     # Timeout for the runner    
     timeout:
-    # ID of the last synced item
-    lastSyncedItem:
     # Timeout for the requests
     requestTimeout:
     # Google Photos client ID
@@ -176,7 +174,6 @@ Options:
     --datePathPattern, -dpp [yyyy/MM/dd] -> LocalDate pattern to use for the path of the item { String }
     --syncFileName, -sfn [last-synced-item] -> Name of the file where last successful item ID will be stored { String }
     --timeout, -to -> Timeout for the runner { String }
-    --lastSyncedItem, -lsi -> ID of the last synced item { String }
     --requestTimeout, -rto -> Timeout for the requests { String }
     --overrideContent, -oc [false] -> Whether to override content
     --help, -h -> Usage info

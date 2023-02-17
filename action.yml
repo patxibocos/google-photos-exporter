@@ -34,9 +34,6 @@ inputs:
   timeout:
     description: 'Timeout for the runner'
     required: false
-  lastSyncedItem:
-    description: 'ID of the last synced item'
-    required: false
   requestTimeout:
     description: 'Timeout for the requests'
     required: false
@@ -91,7 +88,6 @@ runs:
     - ${{ inputs.datePatternPath }}
     - ${{ inputs.syncFileName }}
     - ${{ inputs.timeout }}
-    - ${{ inputs.lastSyncedItem }}
     - ${{ inputs.requestTimeout }}
     - ${{ inputs.overrideContent }}
   env:

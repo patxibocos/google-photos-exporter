@@ -5,24 +5,32 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onEmpty
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import mu.KotlinLogging
-import org.slf4j.Logger
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import kotlin.time.Duration
+
+sealed interface ExportEvent {
+    object ExportStarted : ExportEvent
+    data class ItemsCollected(val photos: Int, val videos: Int) : ExportEvent
+    data class ItemDownloaded(val item: Item) : ExportEvent
+    data class ItemUploaded(val item: Item) : ExportEvent
+    object DownloadFailed : ExportEvent
+    object UploadFailed : ExportEvent
+    object ExportCompleted : ExportEvent
+}
 
 class ExportItems(
     private val googlePhotosRepository: GooglePhotosRepository,
     private val exporter: Exporter,
     private val overrideContent: Boolean,
-    private val logger: Logger = KotlinLogging.logger {},
 ) {
     private fun pathForItem(item: Item, datePathPattern: String): String {
         val date = item.creationTime.atOffset(ZoneOffset.UTC).toLocalDate()
@@ -35,66 +43,40 @@ class ExportItems(
     suspend operator fun invoke(
         offsetId: String?,
         datePathPattern: String,
-        syncFileName: String,
         itemTypes: List<ItemType>,
         timeout: Duration,
-        lastSyncedItem: String?,
-    ): Int {
-        var exitCode = 0
-        val lastItemId =
-            lastSyncedItem?.trim() ?: offsetId?.trim() ?: exporter.get(syncFileName)?.toString(Charsets.UTF_8)?.trim()
-        var lastSuccessfulSyncedItem: String? = null
+    ): Flow<ExportEvent> {
         val scope = CoroutineScope(Job())
-        val shutdownHook = object : Thread() {
-            override fun run() {
-                runBlocking {
-                    updateLastSyncedItem(syncFileName, lastSuccessfulSyncedItem)
-                    scope.cancel()
-                }
-            }
-        }
         scope.launch {
             delay(timeout)
             scope.cancel()
         }
-        Runtime.getRuntime().addShutdownHook(shutdownHook)
-        googlePhotosRepository
-            .download(itemTypes, lastItemId)
-            .onEmpty {
-                logger.info("No new content")
-            }
-            .catch {
-                logger.error("Failed fetching content", it)
-                exitCode = 1
-            }
-            .onEach { item ->
-                exporter.upload(
-                    item.bytes,
-                    item.name,
-                    pathForItem(item, datePathPattern),
-                    overrideContent,
-                )
-                lastSuccessfulSyncedItem = item.id
-            }
-            .catch {
-                logger.error("Failed uploading item", it)
-                exitCode = 2
-            }.onCompletion {
-                updateLastSyncedItem(syncFileName, lastSuccessfulSyncedItem)
-            }.launchIn(scope).join()
-        Runtime.getRuntime().removeShutdownHook(shutdownHook)
-        return exitCode
-    }
-
-    private suspend fun updateLastSyncedItem(syncFileName: String, lastSyncedItem: String?) {
-        lastSyncedItem?.let {
-            exporter.upload(
-                it.toByteArray(),
-                syncFileName,
-                syncFileName,
-                true,
-            )
-            logger.info("Last uploaded item: $it")
+        return channelFlow {
+            googlePhotosRepository
+                .download(itemTypes, offsetId) { photoCount, videoCount ->
+                    send(ExportEvent.ItemsCollected(photoCount, videoCount))
+                }
+                .onStart {
+                    send(ExportEvent.ExportStarted)
+                }
+                .catch {
+                    send(ExportEvent.DownloadFailed)
+                }
+                .onEach { item ->
+                    send(ExportEvent.ItemDownloaded(item))
+                    exporter.upload(
+                        item.bytes,
+                        item.name,
+                        pathForItem(item, datePathPattern),
+                        overrideContent,
+                    )
+                    send(ExportEvent.ItemUploaded(item))
+                }
+                .catch {
+                    send(ExportEvent.UploadFailed)
+                }.onCompletion {
+                    send(ExportEvent.ExportCompleted)
+                }.launchIn(scope).join()
         }
     }
 }

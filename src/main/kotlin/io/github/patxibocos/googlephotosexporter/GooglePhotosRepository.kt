@@ -91,55 +91,63 @@ class GooglePhotosRepository(
         }
     }
 
-    fun download(itemTypes: List<ItemType>, lastItemId: String? = null): Flow<Item> = flow {
-        suspend fun getItems(lastItemId: String?, itemTypes: List<ItemType>): List<MediaItem> {
-            // listMediaItems API doesn't support ordering, so this will start fetching recent pages until:
-            //  - lastItemId is null -> every page
-            //  - lastItemId not null -> every page until a page contains the given id
-            val mediaItems = ArrayDeque<MediaItem>()
-            var nextPageToken = ""
-            while (true) {
-                val googlePhotosResponse = fetchItems(nextPageToken)
-                nextPageToken = googlePhotosResponse.nextPageToken ?: ""
-                val items = googlePhotosResponse.mediaItems
-                val newItems = items.takeWhile {
-                    it.id != lastItemId
-                }
-                val newFilteredItems = newItems.filter { mediaItemFilter(itemTypes)(it) }
-                mediaItems.addAll(newFilteredItems)
-                logger.info("Collecting items: ${mediaItems.size}")
-                if (nextPageToken.isEmpty() || newItems.size != items.size) {
-                    break
-                }
-            }
-            return mediaItems.reversed()
-        }
-
-        var finished = false
-        var lastEmittedId = lastItemId
-        while (!finished) {
-            val mediaItems = getItems(lastEmittedId, itemTypes)
-            logger.info("${mediaItems.size} new items identified")
-            try {
-                mediaItems.forEach { mediaItem ->
-                    val item = try {
-                        // First try to download the item
-                        // Some videos may be stuck on a non-ready status, and be available for download
-                        buildItem(mediaItem)
-                    } catch (e: DownloadError) {
-                        if (mediaItem.isNotReady()) {
-                            logger.warn("Item ${mediaItem.filename} is not ready yet, stopping here")
-                            return@flow
-                        }
-                        throw e
+    fun download(
+        itemTypes: List<ItemType>,
+        lastItemId: String?,
+        startCallback: suspend (photos: Int, videos: Int) -> Unit,
+    ): Flow<Item> =
+        flow {
+            suspend fun getItems(lastItemId: String?, itemTypes: List<ItemType>): List<MediaItem> {
+                // listMediaItems API doesn't support ordering, so this will start fetching recent pages until:
+                //  - lastItemId is null -> every page
+                //  - lastItemId not null -> every page until a page contains the given id
+                val mediaItems = ArrayDeque<MediaItem>()
+                var nextPageToken = ""
+                while (true) {
+                    val googlePhotosResponse = fetchItems(nextPageToken)
+                    nextPageToken = googlePhotosResponse.nextPageToken ?: ""
+                    val items = googlePhotosResponse.mediaItems
+                    val newItems = items.takeWhile {
+                        it.id != lastItemId
                     }
-                    emit(item)
-                    lastEmittedId = mediaItem.id
+                    val newFilteredItems = newItems.filter { mediaItemFilter(itemTypes)(it) }
+                    mediaItems.addAll(newFilteredItems)
+                    if (nextPageToken.isEmpty() || newItems.size != items.size) {
+                        break
+                    }
                 }
-                finished = true
-            } catch (e: GooglePhotosItemForbidden) {
-                logger.warn("Google Photos returned 403 Forbidden, retrying")
+                return mediaItems.reversed()
+            }
+
+            var finished = false
+            var lastEmittedId = lastItemId
+            var emitted = false
+            while (!finished) {
+                val mediaItems = getItems(lastEmittedId, itemTypes)
+                if (!emitted) {
+                    val photos = mediaItems.count { it.hasPhoto() }
+                    val videos = mediaItems.count { it.hasVideo() }
+                    startCallback(photos, videos)
+                    emitted = true
+                }
+                try {
+                    mediaItems.forEach { mediaItem ->
+                        val item = try {
+                            buildItem(mediaItem)
+                        } catch (e: DownloadError) {
+                            if (mediaItem.isNotReady()) {
+                                logger.warn("Item ${mediaItem.filename} is not ready yet, stopping here")
+                                return@flow
+                            }
+                            throw e
+                        }
+                        emit(item)
+                        lastEmittedId = mediaItem.id
+                    }
+                    finished = true
+                } catch (e: GooglePhotosItemForbidden) {
+                    logger.warn("Google Photos returned 403 Forbidden, retrying")
+                }
             }
         }
-    }
 }

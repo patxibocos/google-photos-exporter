@@ -175,7 +175,7 @@ suspend fun HttpClient.requestWithRetry(
         if (maxRetries > 0) {
             return requestWithRetry(urlString, method, dontRetryFor, maxRetries - 1, block)
         } else {
-            throw Exception("Request $method $urlString failed with timeout after $maxRetries retries")
+            throw Exception("Request $method $urlString failed with timeout")
         }
     }
     val shouldRetry = !response.status.isSuccess() && !dontRetryFor.contains(response.status)
