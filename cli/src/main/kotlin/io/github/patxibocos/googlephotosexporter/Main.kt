@@ -16,7 +16,8 @@ fun main(args: Array<String>) {
     val refreshToken = System.getenv("GOOGLE_PHOTOS_REFRESH_TOKEN")
     val googlePhotosClient = googlePhotosHttpClient(clientId, clientSecret, refreshToken, requestTimeoutDuration)
 
-    val exporter = Exporter.from(appArgs.exporter, appArgs.prefixPath, appArgs.maxChunkSize, requestTimeoutDuration)
+    val exporter =
+        Exporter.from(appArgs.exporter.type, appArgs.prefixPath, appArgs.maxChunkSize, requestTimeoutDuration)
     val googlePhotosRepository = GooglePhotosRepository(googlePhotosClient)
 
     val exportItems = ExportItems(googlePhotosRepository, exporter, appArgs.overrideContent)

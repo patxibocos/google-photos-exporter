@@ -1,1 +1,3 @@
-rootProject.name = "google-photos-exporter"
+rootProject.name = "Google Photos Exporter"
+include(":exporter")
+include(":cli")

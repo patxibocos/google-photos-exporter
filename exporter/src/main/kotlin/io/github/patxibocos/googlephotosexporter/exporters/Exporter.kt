@@ -1,7 +1,6 @@
 package io.github.patxibocos.googlephotosexporter.exporters
 
 import io.github.patxibocos.googlephotosexporter.boxHttpClient
-import io.github.patxibocos.googlephotosexporter.cli.ExporterSubcommands
 import io.github.patxibocos.googlephotosexporter.dropboxHttpClient
 import io.github.patxibocos.googlephotosexporter.exporters.decorators.LoggingDecorator
 import io.github.patxibocos.googlephotosexporter.exporters.decorators.RetryDecorator
@@ -29,10 +28,17 @@ interface Exporter {
         }
     }
 
+    enum class ExporterType {
+        BOX,
+        DROPBOX,
+        GITHUB,
+        ONEDRIVE,
+    }
+
     companion object {
-        internal fun from(exporter: ExporterSubcommands<*>, prefixPath: String, maxChunkSize: Int?, requestTimeout: Duration): Exporter {
+        fun from(exporter: ExporterType, prefixPath: String, maxChunkSize: Int?, requestTimeout: Duration): Exporter {
             return when (exporter) {
-                ExporterSubcommands.Box -> {
+                ExporterType.BOX -> {
                     val boxClientId = System.getenv("BOX_CLIENT_ID")
                     val boxClientSecret = System.getenv("BOX_CLIENT_SECRET")
                     val boxUserId = System.getenv("BOX_USER_ID")
@@ -40,15 +46,16 @@ interface Exporter {
                     BoxExporter(httpClient, prefixPath)
                 }
 
-                ExporterSubcommands.Dropbox -> {
+                ExporterType.DROPBOX -> {
                     val dropboxRefreshToken = System.getenv("DROPBOX_REFRESH_TOKEN")
                     val dropboxAppKey = System.getenv("DROPBOX_APP_KEY")
                     val dropboxAppSecret = System.getenv("DROPBOX_APP_SECRET")
-                    val dropboxClient = dropboxHttpClient(dropboxAppKey, dropboxAppSecret, dropboxRefreshToken, requestTimeout)
+                    val dropboxClient =
+                        dropboxHttpClient(dropboxAppKey, dropboxAppSecret, dropboxRefreshToken, requestTimeout)
                     DropboxExporter(dropboxClient, prefixPath)
                 }
 
-                ExporterSubcommands.GitHub -> {
+                ExporterType.GITHUB -> {
                     val githubAccessToken = System.getenv("GITHUB_ACCESS_TOKEN")
                     val githubRepositoryOwner = System.getenv("GITHUB_REPOSITORY_OWNER")
                     val githubRepositoryName = System.getenv("GITHUB_REPOSITORY_NAME")
@@ -61,11 +68,12 @@ interface Exporter {
                     )
                 }
 
-                ExporterSubcommands.OneDrive -> {
+                ExporterType.ONEDRIVE -> {
                     val oneDriveClientId = System.getenv("ONEDRIVE_CLIENT_ID")
                     val oneDriveClientSecret = System.getenv("ONEDRIVE_CLIENT_SECRET")
                     val oneDriveRefreshToken = System.getenv("ONEDRIVE_REFRESH_TOKEN")
-                    val httpClient = oneDriveHttpClient(oneDriveClientId, oneDriveClientSecret, oneDriveRefreshToken, requestTimeout)
+                    val httpClient =
+                        oneDriveHttpClient(oneDriveClientId, oneDriveClientSecret, oneDriveRefreshToken, requestTimeout)
                     OneDriveExporter(httpClient, prefixPath)
                 }
             }.decorate(maxChunkSize)
