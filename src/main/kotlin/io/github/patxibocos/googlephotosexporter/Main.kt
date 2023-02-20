@@ -22,11 +22,30 @@ fun main(args: Array<String>) {
     val exportItems = ExportItems(googlePhotosRepository, exporter, appArgs.overrideContent)
     runBlocking {
         val offsetId = appArgs.offsetId ?: exporter.get(appArgs.syncFileName)?.toString(Charsets.UTF_8)?.trim()
+        var lastSyncedItem: String? = null
         exportItems(
             offsetId = offsetId,
             datePathPattern = appArgs.datePathPattern,
             itemTypes = appArgs.itemTypes,
             timeout = timeoutDuration,
-        ).collect(::println)
+        ).collect { event ->
+            when (event) {
+                ExportEvent.DownloadFailed -> {}
+                ExportEvent.ExportCompleted -> {
+                    lastSyncedItem?.let {
+                        exporter.upload(it.toByteArray(), appArgs.syncFileName, appArgs.syncFileName, true)
+                    }
+                }
+
+                ExportEvent.ExportStarted -> {}
+                is ExportEvent.ItemDownloaded -> {}
+                is ExportEvent.ItemUploaded -> {
+                    lastSyncedItem = event.item.id
+                }
+
+                is ExportEvent.ItemsCollected -> {}
+                ExportEvent.UploadFailed -> {}
+            }
+        }
     }
 }
