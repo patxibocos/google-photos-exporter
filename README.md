@@ -147,15 +147,15 @@ create one, follow these steps:
 Once installed, the app must be built using the included Gradle wrapper:
 
 ```shell
-./gradlew shadowJar
+./gradlew cli:shadowJar
 ```
 
-This will place a runnable Java jar under **build/libs** directory.
+This will place a runnable Java jar under **cli/build/libs** directory.
 
 The app can be executed from the command line through a rich CLI:
 
 ```shell
-java -jar google-photos-exporter.jar -h
+java -jar cli/build/libs/exporter-cli.jar -h
 ```
 
 ```shell

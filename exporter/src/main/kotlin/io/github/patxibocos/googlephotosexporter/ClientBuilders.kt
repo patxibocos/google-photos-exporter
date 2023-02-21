@@ -78,7 +78,7 @@ private fun httpClientForOAuth(
     }
 }
 
-internal fun googlePhotosHttpClient(
+fun googlePhotosHttpClient(
     clientId: String,
     clientSecret: String,
     refreshToken: String,

@@ -35,22 +35,22 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build
-        run: ./gradlew shadowJar
+        run: ./gradlew cli:shadowJar
 
       - name: Copy binary
-        run: mkdir -p release && mv build/libs/google-photos-exporter.jar release
+        run: mkdir -p release && mv cli/build/libs/exporter-cli.jar release
 
       - name: Commit binary
         uses: EndBug/add-and-commit@v9
         with:
-          add: 'release/google-photos-exporter.jar'
+          add: 'release/exporter-cli.jar'
           message: 'Release ${{ inputs.version }}'
           new_branch: 'release/${{ inputs.version }}'
           tag: '${{ inputs.version }} --force'
           tag_push: '--force'
 
       - name: Create release
-        run: gh release create ${{ inputs.version }} release/google-photos-exporter.jar --target release/${{ inputs.version }} --title ${{ inputs.version }} --latest --generate-notes
+        run: gh release create ${{ inputs.version }} release/exporter-cli.jar --target release/${{ inputs.version }} --title ${{ inputs.version }} --latest --generate-notes
         env:
           GH_TOKEN: ${{ github.token }}
 

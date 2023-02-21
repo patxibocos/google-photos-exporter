@@ -1,71 +1,47 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.diffplug.gradle.spotless.SpotlessExtension
 
 plugins {
     idea
-    alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.spotless)
-    alias(libs.plugins.shadow)
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.nexus.publish)
+    alias(libs.plugins.spotless) apply false
 }
 
 group = "io.github.patxibocos"
-version = "1.0"
 
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation(libs.kotlin.cli)
-    implementation(libs.kotlin.coroutines.core)
-    implementation(libs.kotlin.logging)
-    implementation(libs.kotlin.serialization.json)
-    implementation(libs.ktor.client.content.negotiation)
-    implementation(libs.ktor.client.auth)
-    implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.serialization.json)
-    implementation(libs.log4j.api.kotlin)
-    implementation(libs.log4j.core)
-    implementation(libs.log4j.slf4j2.impl)
-    implementation(libs.zip4j)
-
-    testImplementation(libs.kotlin.test)
-    testImplementation(libs.kotlin.coroutines.test)
-    testImplementation(libs.mockk)
-}
-
-kotlin {
-    jvmToolchain(8)
-}
-
-spotless {
-    kotlin {
-        target("**/*.kt")
-        targetExclude("$buildDir/**/*.kt", "bin/**/*.kt")
-        ktlint(libs.versions.ktlint.get())
+allprojects {
+    repositories {
+        mavenCentral()
     }
 
-    kotlinGradle {
-        target("*.gradle.kts")
-        ktlint(libs.versions.ktlint.get())
+    apply(plugin = rootProject.libs.plugins.spotless.get().pluginId)
+
+    configure<SpotlessExtension> {
+        kotlin {
+            target("**/*.kt")
+            targetExclude("$buildDir/**/*.kt", "bin/**/*.kt")
+            ktlint(libs.versions.ktlint.get())
+        }
+
+        kotlinGradle {
+            target("*.gradle.kts")
+            ktlint(libs.versions.ktlint.get())
+        }
     }
 }
 
-tasks.withType<Jar> {
-    manifest {
-        attributes["Main-Class"] = "io.github.patxibocos.googlephotosexporter.MainKt"
-        archiveFileName.set("${project.name}.jar")
+nexusPublishing {
+    repositories {
+        sonatype {
+            val sonatypeStagingProfileId: String? by project
+            val sonatypeUsername: String? by project
+            val sonatypePassword: String? by project
+            stagingProfileId.set(sonatypeStagingProfileId)
+            username.set(sonatypeUsername)
+            password.set(sonatypePassword)
+            // only for users registered in Sonatype after 24 Feb 2021
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+        }
     }
-}
-
-tasks.withType<ShadowJar> {
-    minimize {
-        exclude(dependency(libs.log4j.slf4j2.impl.get()))
-        exclude(dependency(libs.log4j.core.get()))
-    }
-}
-
-tasks.test {
-    useJUnitPlatform()
 }
