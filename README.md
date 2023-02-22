@@ -8,6 +8,8 @@ It is shipped as a GitHub action, but it can be easily built and run by yourself
 
 ## GitHub action 🚀
 
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/patxibocos/google-photos-exporter?color=yellowgreen)](https://github.com/marketplace/actions/google-photos-exporter)
+
 First of all, it is required to setup Google Photos auth to get a client id, client secret and a non expiring refresh
 token. Please follow the steps in [Google Photos OAuth](#google-photos-oauth-).
 
