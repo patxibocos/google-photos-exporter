@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.patxibocos"
-version = "0.0.4"
+version = "0.0.5"
 
 dependencies {
     implementation(libs.kotlin.coroutines.core)
