@@ -18,65 +18,67 @@ interface Exporter {
         overrideContent: Boolean,
     )
 
-    private fun decorate(maxChunkSize: Int?): Exporter {
-        return RetryDecorator(LoggingDecorator(this), 3).let { decorator ->
-            if (maxChunkSize != null) {
-                SplitDecorator(decorator, maxChunkSize)
-            } else {
-                decorator
-            }
-        }
-    }
-
     enum class ExporterType {
         BOX,
         DROPBOX,
         GITHUB,
         ONEDRIVE,
     }
+}
 
-    companion object {
-        fun from(exporter: ExporterType, prefixPath: String, maxChunkSize: Int?, requestTimeout: Duration): Exporter {
-            return when (exporter) {
-                ExporterType.BOX -> {
-                    val boxClientId = System.getenv("BOX_CLIENT_ID")
-                    val boxClientSecret = System.getenv("BOX_CLIENT_SECRET")
-                    val boxUserId = System.getenv("BOX_USER_ID")
-                    val httpClient = boxHttpClient(boxClientId, boxClientSecret, boxUserId, requestTimeout)
-                    BoxExporter(httpClient, prefixPath)
-                }
-
-                ExporterType.DROPBOX -> {
-                    val dropboxRefreshToken = System.getenv("DROPBOX_REFRESH_TOKEN")
-                    val dropboxAppKey = System.getenv("DROPBOX_APP_KEY")
-                    val dropboxAppSecret = System.getenv("DROPBOX_APP_SECRET")
-                    val dropboxClient =
-                        dropboxHttpClient(dropboxAppKey, dropboxAppSecret, dropboxRefreshToken, requestTimeout)
-                    DropboxExporter(dropboxClient, prefixPath)
-                }
-
-                ExporterType.GITHUB -> {
-                    val githubAccessToken = System.getenv("GITHUB_ACCESS_TOKEN")
-                    val githubRepositoryOwner = System.getenv("GITHUB_REPOSITORY_OWNER")
-                    val githubRepositoryName = System.getenv("GITHUB_REPOSITORY_NAME")
-                    val httpClient = githubHttpClient(githubAccessToken, requestTimeout)
-                    GitHubExporter(
-                        httpClient,
-                        githubRepositoryOwner,
-                        githubRepositoryName,
-                        prefixPath,
-                    )
-                }
-
-                ExporterType.ONEDRIVE -> {
-                    val oneDriveClientId = System.getenv("ONEDRIVE_CLIENT_ID")
-                    val oneDriveClientSecret = System.getenv("ONEDRIVE_CLIENT_SECRET")
-                    val oneDriveRefreshToken = System.getenv("ONEDRIVE_REFRESH_TOKEN")
-                    val httpClient =
-                        oneDriveHttpClient(oneDriveClientId, oneDriveClientSecret, oneDriveRefreshToken, requestTimeout)
-                    OneDriveExporter(httpClient, prefixPath)
-                }
-            }.decorate(maxChunkSize)
+private fun Exporter.decorate(maxChunkSize: Int?): Exporter {
+    return RetryDecorator(LoggingDecorator(this), 3).let { decorator ->
+        if (maxChunkSize != null) {
+            SplitDecorator(decorator, maxChunkSize)
+        } else {
+            decorator
         }
     }
+}
+
+class ExporterScope(
+    private val prefixPath: String,
+    private val requestTimeout: Duration,
+    var exporter: Exporter? = null,
+) {
+    fun box(boxClientId: String, boxClientSecret: String, boxUserId: String) {
+        val httpClient = boxHttpClient(boxClientId, boxClientSecret, boxUserId, requestTimeout)
+        exporter = BoxExporter(httpClient, prefixPath)
+    }
+
+    fun dropbox(dropboxRefreshToken: String, dropboxAppKey: String, dropboxAppSecret: String) {
+        val dropboxClient =
+            dropboxHttpClient(dropboxAppKey, dropboxAppSecret, dropboxRefreshToken, requestTimeout)
+        exporter = DropboxExporter(dropboxClient, prefixPath)
+    }
+
+    fun github(
+        githubAccessToken: String,
+        githubRepositoryOwner: String,
+        githubRepositoryName: String,
+    ) {
+        val httpClient = githubHttpClient(githubAccessToken, requestTimeout)
+        exporter = GitHubExporter(
+            httpClient,
+            githubRepositoryOwner,
+            githubRepositoryName,
+            prefixPath,
+        )
+    }
+
+    fun onedrive(
+        oneDriveClientId: String,
+        oneDriveClientSecret: String,
+        oneDriveRefreshToken: String,
+    ) {
+        val httpClient =
+            oneDriveHttpClient(oneDriveClientId, oneDriveClientSecret, oneDriveRefreshToken, requestTimeout)
+        exporter = OneDriveExporter(httpClient, prefixPath)
+    }
+}
+
+fun exporter(prefixPath: String, maxChunkSize: Int?, requestTimeout: Duration, f: ExporterScope.() -> Unit): Exporter {
+    val exporterScope = ExporterScope(prefixPath, requestTimeout)
+    exporterScope.f()
+    return requireNotNull(exporterScope.exporter).decorate(maxChunkSize)
 }
