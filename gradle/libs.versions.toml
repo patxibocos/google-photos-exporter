@@ -9,7 +9,7 @@ coroutines = "1.6.4"
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version = "1.3.0" }
-shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.0" }
+shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
 spotless = { id = "com.diffplug.spotless", version = "6.16.0" }
 
 [libraries]
