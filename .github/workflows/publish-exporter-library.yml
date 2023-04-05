@@ -1,9 +1,9 @@
-name: publish-exporter
+name: publish-exporter-library
 
 on: workflow_dispatch
 
 jobs:
-  publish-exporter:
+  publish-exporter-library:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

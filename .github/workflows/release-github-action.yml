@@ -1,4 +1,4 @@
-name: release
+name: release-github-action
 
 on:
   workflow_dispatch:
@@ -17,7 +17,7 @@ on:
         default: false
 
 jobs:
-  release:
+  release-github-action:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
