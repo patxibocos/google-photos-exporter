@@ -1,3 +1,6 @@
+[![google-photos-exporter](https://img.shields.io/maven-central/v/io.github.patxibocos/google-photos-exporter?label=google-photos-exporter&color=blue)](https://search.maven.org/artifact/io.github.patxibocos/google-photos-exporter)
+[![github-action](https://img.shields.io/github/v/release/patxibocos/google-photos-exporter?label=github-action&color=yellowgreen)](https://github.com/marketplace/actions/google-photos-exporter)
+
 # Google Photos exporter
 
 ## What is google-photos-exporter ❓
@@ -7,8 +10,6 @@ This is an app that fetches every photo from Google Photos library and uploads i
 It is shipped as a GitHub action, but it can be easily built and run by yourself.
 
 ## GitHub action 🚀
-
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/patxibocos/google-photos-exporter?color=yellowgreen)](https://github.com/marketplace/actions/google-photos-exporter)
 
 First of all, it is required to setup Google Photos auth to get a client id, client secret and a non expiring refresh
 token. Please follow the steps in [Google Photos OAuth](#google-photos-oauth-).
