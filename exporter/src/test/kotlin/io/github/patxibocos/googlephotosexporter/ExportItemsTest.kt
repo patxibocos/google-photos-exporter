@@ -7,7 +7,6 @@ import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
@@ -18,7 +17,6 @@ import java.time.Instant
 import kotlin.test.Test
 import kotlin.time.Duration
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @ExtendWith(MockKExtension::class)
 class ExportItemsTest {
 
@@ -30,14 +28,14 @@ class ExportItemsTest {
 
     @Test
     fun `when no items on photos repository then nothing is uploaded`() = runTest {
-        every { googlePhotosRepository.download(ItemType.values().toList(), null, any()) } returns emptyFlow()
+        every { googlePhotosRepository.download(ItemType.entries, null, any()) } returns emptyFlow()
         coEvery { exporter.get(any()) } returns null
         val exportItems = ExportItems(googlePhotosRepository, exporter, false)
 
         exportItems(
             offsetId = null,
             datePathPattern = "yyyy/MM/dd",
-            itemTypes = ItemType.values().toList(),
+            itemTypes = ItemType.entries,
             timeout = Duration.INFINITE,
         ).collect()
 
@@ -47,7 +45,7 @@ class ExportItemsTest {
     @Test
     fun `when many items on photos repository then every item is uploaded in order`() =
         runTest {
-            every { googlePhotosRepository.download(ItemType.values().toList(), null, any()) } returns flowOf(
+            every { googlePhotosRepository.download(ItemType.entries, null, any()) } returns flowOf(
                 Item(byteArrayOf(), "id1", "item1.jpg", Instant.EPOCH),
                 Item(byteArrayOf(), "id2", "item2.jpg", Instant.EPOCH),
             )
@@ -58,7 +56,7 @@ class ExportItemsTest {
             exportItems(
                 offsetId = null,
                 datePathPattern = "yyyy/MM/dd",
-                itemTypes = ItemType.values().toList(),
+                itemTypes = ItemType.entries,
                 timeout = Duration.INFINITE,
             ).collect()
 
@@ -70,7 +68,7 @@ class ExportItemsTest {
 
     @Test
     fun `when emitting an item fails then collection stops`() = runTest {
-        every { googlePhotosRepository.download(ItemType.values().toList(), null, any()) } returns flow {
+        every { googlePhotosRepository.download(ItemType.entries, null, any()) } returns flow {
             emit(Item(byteArrayOf(), "id1", "item1.jpg", Instant.EPOCH))
             throw Exception()
         }
@@ -81,7 +79,7 @@ class ExportItemsTest {
         exportItems(
             offsetId = null,
             datePathPattern = "yyyy/MM/dd",
-            itemTypes = ItemType.values().toList(),
+            itemTypes = ItemType.entries,
             timeout = Duration.INFINITE,
         ).collect()
 
@@ -92,14 +90,14 @@ class ExportItemsTest {
 
     @Test
     fun `when passing an explicit offset ID then it is used as offset`() = runTest {
-        every { googlePhotosRepository.download(ItemType.values().toList(), "last-item-id", any()) } returns emptyFlow()
+        every { googlePhotosRepository.download(ItemType.entries, "last-item-id", any()) } returns emptyFlow()
         val exportItems =
             ExportItems(googlePhotosRepository, exporter, false)
 
         exportItems(
             offsetId = "last-item-id",
             datePathPattern = "yyyy/MM/dd",
-            itemTypes = ItemType.values().toList(),
+            itemTypes = ItemType.entries,
             timeout = Duration.INFINITE,
         ).collect()
     }

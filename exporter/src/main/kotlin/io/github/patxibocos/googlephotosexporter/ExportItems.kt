@@ -18,13 +18,13 @@ import java.time.format.DateTimeFormatter
 import kotlin.time.Duration
 
 sealed interface ExportEvent {
-    object ExportStarted : ExportEvent
+    data object ExportStarted : ExportEvent
     data class ItemsCollected(val photos: Int, val videos: Int) : ExportEvent
     data class ItemDownloaded(val item: Item) : ExportEvent
     data class ItemUploaded(val item: Item) : ExportEvent
-    object DownloadFailed : ExportEvent
-    object UploadFailed : ExportEvent
-    object ExportCompleted : ExportEvent
+    data object DownloadFailed : ExportEvent
+    data object UploadFailed : ExportEvent
+    data object ExportCompleted : ExportEvent
 }
 
 class ExportItems(

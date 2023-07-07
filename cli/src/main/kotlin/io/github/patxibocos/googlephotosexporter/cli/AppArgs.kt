@@ -27,7 +27,7 @@ internal fun getAppArgs(args: Array<String>): AppArgs {
         ArgType.Choice<ItemType>(),
         shortName = "it",
         description = "Item types to include",
-    ).multiple().default(ItemType.values().toList())
+    ).multiple().default(ItemType.entries)
     val maxChunkSize by parser.option(
         ArgType.Int,
         shortName = "mcs",
