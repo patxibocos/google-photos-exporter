@@ -36,10 +36,10 @@ sealed interface ExportEvent {
 }
 
 object InstantSerializer : KSerializer<Instant> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("java.time.Instant", PrimitiveKind.LONG)
-    override fun deserialize(decoder: Decoder): Instant = Instant.ofEpochMilli(decoder.decodeLong())
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("java.time.Instant", PrimitiveKind.STRING)
+    override fun deserialize(decoder: Decoder): Instant = Instant.parse(decoder.decodeString())
 
-    override fun serialize(encoder: Encoder, value: Instant) = encoder.encodeLong(value.toEpochMilli())
+    override fun serialize(encoder: Encoder, value: Instant) = encoder.encodeString(value.toString())
 }
 
 @Serializable
