@@ -111,8 +111,11 @@ class GooglePhotosRepository(
                     nextPageToken = googlePhotosResponse.nextPageToken ?: ""
                     val items = googlePhotosResponse.mediaItems
                     val newItems = items.takeWhile {
-                        lastSync == null || it.id != lastSync.id || Instant.parse(it.mediaMetadata.creationTime)
-                            .isAfter(lastSync.creationTime)
+                        when {
+                            lastSync == null -> false
+                            it.id == lastSync.id -> false
+                            else -> Instant.parse(it.mediaMetadata.creationTime).isAfter(lastSync.creationTime)
+                        }
                     }
                     val newFilteredItems = newItems.filter { mediaItemFilter(itemTypes)(it) }
                     mediaItems.addAll(newFilteredItems)
