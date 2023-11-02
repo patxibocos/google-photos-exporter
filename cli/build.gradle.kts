@@ -33,5 +33,6 @@ tasks.withType<ShadowJar> {
     minimize {
         exclude(dependency(libs.log4j.slf4j2.impl.get()))
         exclude(dependency(libs.log4j.core.get()))
+        exclude(dependency(libs.ktor.serialization.json.get()))
     }
 }
