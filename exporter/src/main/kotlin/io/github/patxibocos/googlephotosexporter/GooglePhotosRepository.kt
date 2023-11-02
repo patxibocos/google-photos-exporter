@@ -93,11 +93,14 @@ class GooglePhotosRepository(
 
     fun download(
         itemTypes: List<ItemType>,
-        lastItemId: String?,
+        lastSync: Sync?,
         startCallback: suspend (photos: Int, videos: Int) -> Unit,
     ): Flow<Item> =
         flow {
-            suspend fun getItems(lastItemId: String?, itemTypes: List<ItemType>): List<MediaItem> {
+            suspend fun getItems(
+                lastSync: Sync?,
+                itemTypes: List<ItemType>,
+            ): List<MediaItem> {
                 // listMediaItems API doesn't support ordering, so this will start fetching recent pages until:
                 //  - lastItemId is null -> every page
                 //  - lastItemId not null -> every page until a page contains the given id
@@ -108,7 +111,8 @@ class GooglePhotosRepository(
                     nextPageToken = googlePhotosResponse.nextPageToken ?: ""
                     val items = googlePhotosResponse.mediaItems
                     val newItems = items.takeWhile {
-                        it.id != lastItemId
+                        lastSync == null || it.id != lastSync.id || Instant.parse(it.mediaMetadata.creationTime)
+                            .isAfter(lastSync.creationTime)
                     }
                     val newFilteredItems = newItems.filter { mediaItemFilter(itemTypes)(it) }
                     mediaItems.addAll(newFilteredItems)
@@ -120,10 +124,10 @@ class GooglePhotosRepository(
             }
 
             var finished = false
-            var lastEmittedId = lastItemId
+            var lastEmitted = lastSync
             var emitted = false
             while (!finished) {
-                val mediaItems = getItems(lastEmittedId, itemTypes)
+                val mediaItems = getItems(lastEmitted, itemTypes)
                 if (!emitted) {
                     val photos = mediaItems.count { it.hasPhoto() }
                     val videos = mediaItems.count { it.hasVideo() }
@@ -142,7 +146,7 @@ class GooglePhotosRepository(
                             throw e
                         }
                         emit(item)
-                        lastEmittedId = mediaItem.id
+                        lastEmitted = Sync(mediaItem.id, Instant.parse(mediaItem.mediaMetadata.creationTime))
                     }
                     finished = true
                 } catch (e: GooglePhotosItemForbidden) {

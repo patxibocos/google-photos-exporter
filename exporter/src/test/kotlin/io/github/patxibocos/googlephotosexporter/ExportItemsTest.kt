@@ -33,7 +33,7 @@ class ExportItemsTest {
         val exportItems = ExportItems(googlePhotosRepository, exporter, false)
 
         exportItems(
-            offsetId = null,
+            offsetSync = null,
             datePathPattern = "yyyy/MM/dd",
             itemTypes = ItemType.entries,
             timeout = Duration.INFINITE,
@@ -54,7 +54,7 @@ class ExportItemsTest {
             val exportItems = ExportItems(googlePhotosRepository, exporter, false)
 
             exportItems(
-                offsetId = null,
+                offsetSync = null,
                 datePathPattern = "yyyy/MM/dd",
                 itemTypes = ItemType.entries,
                 timeout = Duration.INFINITE,
@@ -77,7 +77,7 @@ class ExportItemsTest {
         val exportItems = ExportItems(googlePhotosRepository, exporter, false)
 
         exportItems(
-            offsetId = null,
+            offsetSync = null,
             datePathPattern = "yyyy/MM/dd",
             itemTypes = ItemType.entries,
             timeout = Duration.INFINITE,
@@ -89,13 +89,14 @@ class ExportItemsTest {
     }
 
     @Test
-    fun `when passing an explicit offset ID then it is used as offset`() = runTest {
-        every { googlePhotosRepository.download(ItemType.entries, "last-item-id", any()) } returns emptyFlow()
+    fun `when passing an explicit offset sync data then it is used as offset`() = runTest {
+        val lastSync = Sync("last-item-id", Instant.MIN)
+        every { googlePhotosRepository.download(ItemType.entries, lastSync, any()) } returns emptyFlow()
         val exportItems =
             ExportItems(googlePhotosRepository, exporter, false)
 
         exportItems(
-            offsetId = "last-item-id",
+            offsetSync = lastSync,
             datePathPattern = "yyyy/MM/dd",
             itemTypes = ItemType.entries,
             timeout = Duration.INFINITE,
