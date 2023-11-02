@@ -13,6 +13,14 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import kotlin.time.Duration
@@ -26,6 +34,16 @@ sealed interface ExportEvent {
     data object UploadFailed : ExportEvent
     data object ExportCompleted : ExportEvent
 }
+
+object InstantSerializer : KSerializer<Instant> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("java.time.Instant", PrimitiveKind.LONG)
+    override fun deserialize(decoder: Decoder): Instant = Instant.ofEpochMilli(decoder.decodeLong())
+
+    override fun serialize(encoder: Encoder, value: Instant) = encoder.encodeLong(value.toEpochMilli())
+}
+
+@Serializable
+data class Sync(val id: String, @Serializable(InstantSerializer::class) val creationTime: Instant)
 
 class ExportItems(
     private val googlePhotosRepository: GooglePhotosRepository,
@@ -41,7 +59,7 @@ class ExportItems(
     }
 
     suspend operator fun invoke(
-        offsetId: String?,
+        offsetSync: Sync?,
         datePathPattern: String,
         itemTypes: List<ItemType>,
         timeout: Duration,
@@ -53,7 +71,7 @@ class ExportItems(
         }
         return channelFlow {
             googlePhotosRepository
-                .download(itemTypes, offsetId) { photoCount, videoCount ->
+                .download(itemTypes, offsetSync) { photoCount, videoCount ->
                     send(ExportEvent.ItemsCollected(photoCount, videoCount))
                 }
                 .onStart {

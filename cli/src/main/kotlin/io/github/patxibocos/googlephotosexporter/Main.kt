@@ -5,6 +5,9 @@ import io.github.patxibocos.googlephotosexporter.cli.getAppArgs
 import io.github.patxibocos.googlephotosexporter.exporters.Exporter
 import io.github.patxibocos.googlephotosexporter.exporters.exporter
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.time.Instant
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
@@ -56,10 +59,11 @@ fun main(args: Array<String>) {
 
     val exportItems = ExportItems(googlePhotosRepository, exporter, appArgs.overrideContent)
     runBlocking {
-        val offsetId = appArgs.offsetId ?: exporter.get(appArgs.syncFileName)?.toString(Charsets.UTF_8)?.trim()
-        var lastSyncedItem: String? = null
+        val offsetSync = appArgs.offsetId?.let { Sync(it, Instant.MIN) } ?: exporter.get(appArgs.syncFileName)
+            ?.toString(Charsets.UTF_8)?.trim()?.let { Json.decodeFromString(it) }
+        var lastCompletedSync: Sync? = null
         exportItems(
-            offsetId = offsetId,
+            offsetSync = offsetSync,
             datePathPattern = appArgs.datePathPattern,
             itemTypes = appArgs.itemTypes,
             timeout = timeoutDuration,
@@ -67,15 +71,20 @@ fun main(args: Array<String>) {
             when (event) {
                 ExportEvent.DownloadFailed -> {}
                 ExportEvent.ExportCompleted -> {
-                    lastSyncedItem?.let {
-                        exporter.upload(it.toByteArray(), appArgs.syncFileName, appArgs.syncFileName, true)
+                    lastCompletedSync?.let {
+                        exporter.upload(
+                            data = Json.encodeToString(it).toByteArray(),
+                            name = appArgs.syncFileName,
+                            filePath = appArgs.syncFileName,
+                            overrideContent = true,
+                        )
                     }
                 }
 
                 ExportEvent.ExportStarted -> {}
                 is ExportEvent.ItemDownloaded -> {}
                 is ExportEvent.ItemUploaded -> {
-                    lastSyncedItem = event.item.id
+                    lastCompletedSync = Sync(event.item.id, event.item.creationTime)
                 }
 
                 is ExportEvent.ItemsCollected -> {}
