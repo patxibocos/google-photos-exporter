@@ -1,9 +1,8 @@
 package io.github.patxibocos.googlephotosexporter
 
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.http.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.Serializable
@@ -112,9 +111,12 @@ class GooglePhotosRepository(
                     val items = googlePhotosResponse.mediaItems
                     val newItems = items.takeWhile {
                         when {
-                            lastSync == null -> false
+                            lastSync == null -> true
                             it.id == lastSync.id -> false
-                            else -> Instant.parse(it.mediaMetadata.creationTime).isAfter(lastSync.creationTime)
+                            else -> {
+                                val currentItemCreationTime = Instant.parse(it.mediaMetadata.creationTime)
+                                currentItemCreationTime >= lastSync.creationTime
+                            }
                         }
                     }
                     val newFilteredItems = newItems.filter { mediaItemFilter(itemTypes)(it) }
