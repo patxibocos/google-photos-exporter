@@ -18,7 +18,7 @@ kotlin-cli = "org.jetbrains.kotlinx:kotlinx-cli-jvm:0.3.6"
 kotlin-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlin-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 kotlin-logging = "io.github.microutils:kotlin-logging-jvm:3.0.5"
-kotlin-serialization-json = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.1"
+kotlin-serialization-json = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2"
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
