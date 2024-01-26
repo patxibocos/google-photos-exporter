@@ -18,7 +18,7 @@ jobs:
           java-version: '19'
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
 
       - name: Upload to Sonatype Nexus and publish to Maven Central
         run: |
