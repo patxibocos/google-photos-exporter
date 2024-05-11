@@ -23,25 +23,25 @@ internal sealed interface ExporterSubcommands<T> {
         }
     }
 
-    object GitHub : Subcommand("github", "GitHub exporter"), ExporterSubcommands<Unit> {
+    data object GitHub : Subcommand("github", "GitHub exporter"), ExporterSubcommands<Unit> {
         override fun execute() {}
         override fun data() = Unit
         override val type = Exporter.ExporterType.GITHUB
     }
 
-    object Dropbox : Subcommand("dropbox", "Dropbox exporter"), ExporterSubcommands<Unit> {
+    data object Dropbox : Subcommand("dropbox", "Dropbox exporter"), ExporterSubcommands<Unit> {
         override fun execute() {}
         override fun data() = Unit
         override val type = Exporter.ExporterType.DROPBOX
     }
 
-    object Box : Subcommand("box", "Box exporter"), ExporterSubcommands<Unit> {
+    data object Box : Subcommand("box", "Box exporter"), ExporterSubcommands<Unit> {
         override fun execute() {}
         override fun data() = Unit
         override val type = Exporter.ExporterType.BOX
     }
 
-    object OneDrive : Subcommand("onedrive", "OneDrive exporter"), ExporterSubcommands<Unit> {
+    data object OneDrive : Subcommand("onedrive", "OneDrive exporter"), ExporterSubcommands<Unit> {
         override fun execute() {}
         override fun data() = Unit
         override val type = Exporter.ExporterType.ONEDRIVE

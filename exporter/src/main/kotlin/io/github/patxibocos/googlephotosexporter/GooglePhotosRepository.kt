@@ -16,7 +16,9 @@ enum class ItemType {
     PHOTO, VIDEO
 }
 
-private object GooglePhotosItemForbidden : Exception()
+private object GooglePhotosItemForbidden : Exception() {
+    private fun readResolve(): Any = GooglePhotosItemForbidden
+}
 
 private const val BASE_PATH = "https://photoslibrary.googleapis.com"
 

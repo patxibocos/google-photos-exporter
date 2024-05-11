@@ -11,7 +11,7 @@ It is shipped as a GitHub action, but it can be easily built and run by yourself
 
 ## GitHub action 🚀
 
-First of all, it is required to setup Google Photos auth to get a client id, client secret and a non expiring refresh
+First of all, it is required to set up Google Photos auth to get a client id, client secret and a non expiring refresh
 token. Please follow the steps in [Google Photos OAuth](#google-photos-oauth-).
 
 Then, you need to configure auth for GitHub, Dropbox, Box or OneDrive:
@@ -24,7 +24,7 @@ Then, you need to configure auth for GitHub, Dropbox, Box or OneDrive:
 ### Usage 📕
 
 The mandatory fields are `exporter` (**github**, **dropbox**, **box** or **onedrive**), `googlePhotosClientId`, `googlePhotosClientSecret` and `googlePhotosRefreshToken`.
-Additionally there are exporter dependant mandatory fields.
+Additionally, there are exporter dependant mandatory fields.
 
 - For **GitHub** => `githubAccessToken`, `githubRepositoryOwner` and `githubRepositoryName`
 - For **Dropbox** => `dropboxAppKey`, `dropboxAppSecret` and `dropboxRefreshToken`
@@ -122,7 +122,7 @@ create one, follow these steps:
 5. Give any desired name to the app
 6. Follow the
    steps [here](https://www.codemzy.com/blog/dropbox-long-lived-access-refresh-token#how-can-i-get-a-refresh-token-manually)
-   to generate a **long lived refresh token**
+   to generate a **long-lived refresh token**
 7. Get app key and secret from app settings, and refresh token from the previous step
 
 ### Box OAuth 📦
@@ -141,7 +141,7 @@ create one, follow these steps:
 
 1. Follow the steps described in => https://learn.microsoft.com/en-us/graph/auth-v2-user?view=graph-rest-1.0
     1. When setting the scopes, set `offline_access files.readwrite`. The first one will allow getting new access
-       tokens. The later is required to upload photos/videos and also for reading the sync file.
+       tokens. The latter is required to upload photos/videos and also for reading the sync file.
 
 ## Build on your own 📙
 
