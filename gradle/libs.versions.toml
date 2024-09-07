@@ -1,7 +1,7 @@
 [versions]
 ktlint = "0.48.2"
 ktor = "2.3.12"
-log4j = "2.23.1"
+log4j = "2.24.0"
 kotlin = "2.0.20"
 coroutines = "1.8.1"
 
