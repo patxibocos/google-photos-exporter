@@ -13,7 +13,7 @@ shadow = { id = "com.github.johnrengelman.shadow", version = "8.1.1" }
 spotless = { id = "com.diffplug.spotless", version = "7.0.2" }
 
 [libraries]
-junit = "org.junit.jupiter:junit-jupiter:5.12.0"
+junit = "org.junit.jupiter:junit-jupiter:5.12.1"
 kotlin-cli = "org.jetbrains.kotlinx:kotlinx-cli-jvm:0.3.6"
 kotlin-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlin-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
