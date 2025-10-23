@@ -2,7 +2,7 @@
 ktlint = "0.48.2"
 ktor = "3.3.1"
 log4j = "2.25.2"
-kotlin = "2.2.20"
+kotlin = "2.2.21"
 coroutines = "1.10.2"
 
 [plugins]
