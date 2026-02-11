@@ -29,4 +29,4 @@ log4j-api-kotlin = "org.apache.logging.log4j:log4j-api-kotlin:1.5.0"
 log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
 log4j-slf4j2-impl = { module = "org.apache.logging.log4j:log4j-slf4j2-impl", version.ref = "log4j" }
 mockk = "io.mockk:mockk:1.14.9"
-zip4j = "net.lingala.zip4j:zip4j:2.11.5"
+zip4j = "net.lingala.zip4j:zip4j:2.11.6"
